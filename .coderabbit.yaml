@@ -1,0 +1,105 @@
+# CodeRabbit's review settings. Keys left out keep their defaults:
+# https://docs.coderabbit.ai/reference/configuration
+language: en-US
+
+reviews:
+  profile: chill
+  # Short walkthroughs: one maintainer reviews, so no reviewer suggestions, and no poem.
+  poem: false
+  suggested_reviewers: false
+  # Suggest labels, never apply them: a PR carries its crate labels and, when it breaks the public
+  # API or a data format, `breaking`, which the semver check reads.
+  suggested_labels: true
+  auto_apply_labels: false
+  labeling_instructions:
+    - label: "crate: core"
+      instructions: The PR changes crates/core.
+    - label: "crate: axum"
+      instructions: The PR changes crates/axum.
+    - label: "crate: postgres"
+      instructions: The PR changes crates/postgres.
+    - label: "crate: redis"
+      instructions: The PR changes crates/redis.
+    - label: "crate: nats"
+      instructions: The PR changes crates/nats.
+    - label: "crate: sisa-health-checks"
+      instructions: The PR changes crates/sisa-health-checks, the facade crate.
+    - label: ci
+      instructions: The PR changes .github/workflows, .github/scripts or .githooks.
+    - label: breaking
+      instructions: >-
+        The PR breaks what CONTRIBUTING.md's "What the public API is" lists: it removes or
+        changes a public item that isn't `#[doc(hidden)]`, a settings field name or default, a
+        metric name or attribute, a route path, the probe text or the report's JSON shape, or
+        moves to a release of sqlx, redis-rs or async-nats that breaks its API. A new item,
+        setting or error variant isn't breaking. A commit subject with `!` always is.
+
+  # Approve a PR once its findings are resolved, so Scorecard's Code-Review check sees the review.
+  # The author can't approve their own PR with `@coderabbitai approve`.
+  auto_approvals:
+    enabled: true
+    allow_author_approval: false
+
+  # The generated changelog and the lock file aren't reviewed.
+  path_filters:
+    - "!CHANGELOG.md"
+    - "!Cargo.lock"
+
+  path_instructions:
+    - path: "crates/**/*.rs"
+      instructions: >-
+        Check the rules in docs/01-architecture.md: probes never run a check; a liveness check
+        never touches a dependency; responses never carry a result's error; no new dependency in
+        a library crate. Look for a lock held across `.await`, a check without a timeout path,
+        and an error dropped without a log. Don't ask for doc comments on private items.
+    - path: "docs/**/*.md"
+      instructions: >-
+        Diagrams are Mermaid, and tables beat long lists. Every relative link and `#anchor` must
+        resolve. A change to a route, the probe text or the report's JSON must update the
+        formats in docs/01-architecture.md.
+    - path: ".github/workflows/*.yml"
+      instructions: >-
+        Every action is pinned to a full commit SHA with its version in a comment. Workflow names
+        are Title Case; job names stay lowercase, since the `main` ruleset requires checks by job
+        name.
+
+  pre_merge_checks:
+    # rustdoc's `missing_docs` lint covers public items; this check also counts private helpers.
+    docstrings:
+      mode: "off"
+    title:
+      mode: warning
+      requirements: >-
+        Conventional Commits as CONTRIBUTING.md says: `type(scope): summary`, at most 72
+        characters, no period at the end, the summary in the imperative. The type is one of feat,
+        fix, perf, refactor, docs, test, build, ci, chore or revert. The scope is optional:
+        core, axum, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
+
+  # Commits on a PR come from its author only, so CodeRabbit doesn't write docstrings or tests.
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+
+  tools:
+    # CI runs clippy with `-D warnings`.
+    clippy:
+      enabled: false
+    # Its 80-column rule fights the docs' 100 columns.
+    markdownlint:
+      enabled: false
+
+chat:
+  art: false
+
+knowledge_base:
+  code_guidelines:
+    # Read beside AGENTS.md, which CodeRabbit finds by itself, so settled decisions aren't raised
+    # again. A plain path applies to its own folder, so the two below name every file.
+    filePatterns:
+      - CONTRIBUTING.md
+      - files: .agents/skills/review-changes/SKILL.md
+        applyTo: "**"
+      - files: docs/01-architecture.md
+        applyTo: "**"

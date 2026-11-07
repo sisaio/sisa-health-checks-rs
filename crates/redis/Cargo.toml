@@ -1,0 +1,31 @@
+[package]
+name = "sisa-health-checks-redis"
+description = "A Redis health check for Sisa Health Checks, on any redis-rs async connection"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+# The tests use sisa-health-checks-testing, which isn't published, so a downloaded crate couldn't
+# build them.
+exclude = ["tests/"]
+keywords = ["health-check", "redis", "valkey", "readiness"]
+categories = ["database", "asynchronous"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# The contract this crate implements.
+sisa-health-checks-core = { workspace = true }
+
+# The client the check sends PING through.
+redis = { workspace = true }
+
+[dev-dependencies]
+sisa-health-checks-testing = { workspace = true }
+tokio = { workspace = true }
+# The connection the tests check through, as most applications use.
+redis = { workspace = true, features = ["connection-manager"] }

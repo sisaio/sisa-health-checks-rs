@@ -1,0 +1,43 @@
+[package]
+name = "sisa-health-checks"
+description = "Kubernetes-style health checks for Rust services: /livez and /readyz probes, a health+json report, and checks for PostgreSQL, Redis and NATS"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords = ["health-check", "kubernetes", "readiness", "liveness", "axum"]
+categories = ["web-programming", "asynchronous"]
+
+[lints]
+workspace = true
+
+[features]
+# No default: an application names the framework and the checks it uses.
+default = []
+# The /livez, /readyz and /health routes for axum.
+axum = ["dep:sisa-health-checks-axum"]
+# The PostgreSQL check, on an sqlx pool.
+postgres = ["dep:sisa-health-checks-postgres"]
+# The Redis check, on any redis-rs async connection.
+redis = ["dep:sisa-health-checks-redis"]
+# The NATS check, on an async-nats client.
+nats = ["dep:sisa-health-checks-nats"]
+
+[dependencies]
+# One crate per part; this one only re-exports them.
+sisa-health-checks-core = { workspace = true }
+sisa-health-checks-axum = { workspace = true, optional = true }
+sisa-health-checks-postgres = { workspace = true, optional = true }
+sisa-health-checks-redis = { workspace = true, optional = true }
+sisa-health-checks-nats = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+# Marks each item a feature turns on, through `doc_cfg` in the crate root.
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,0 +1,19 @@
+[package]
+name = "sisa-health-checks-testing"
+description = "Test helpers shared by the Sisa Health Checks crates: a server per test in Docker"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+# A server per test, in Docker.
+testcontainers = { workspace = true }
+# Waiting between attempts while a server starts.
+tokio = { workspace = true }

@@ -1,0 +1,21 @@
+[package]
+name = "sisa-health-checks-example-axum-service"
+description = "A service with liveness and readiness probes over PostgreSQL, Redis and NATS"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+sisa-health-checks = { workspace = true, features = ["axum", "postgres", "redis", "nats"] }
+
+# The server, its runtime, and Ctrl-C and SIGTERM.
+axum = { workspace = true, features = ["tokio", "http1"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "net", "signal"] }
+# The connection the Redis check uses.
+redis = { workspace = true, features = ["connection-manager"] }
+tracing = { workspace = true }

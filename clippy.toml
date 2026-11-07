@@ -1,0 +1,3 @@
+# Names are whole words: no single letter is allowed, not even clippy's default i, j, n, x, y, z
+# and w.
+allowed-idents-below-min-chars = []

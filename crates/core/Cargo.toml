@@ -1,0 +1,36 @@
+[package]
+name = "sisa-health-checks-core"
+description = "Health check contract, registry, probes and reports of Sisa Health Checks"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords = ["health-check", "kubernetes", "readiness", "liveness", "async"]
+categories = ["web-programming", "asynchronous"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# The error types' `Display` and `Error` implementations.
+thiserror = { workspace = true }
+
+# The settings' serialization, and the `application/health+json` report.
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# The poller task, each check's timeout, and the clock the probes read.
+tokio = { workspace = true }
+# Runs the checks side by side and catches a check that panics.
+futures-util = { workspace = true }
+
+# Spans per check, logs on state changes, and the OpenTelemetry metrics API.
+tracing = { workspace = true }
+opentelemetry = { workspace = true }
+
+[dev-dependencies]
+# Paused time, so the timeout and staleness tests don't wait.
+tokio = { workspace = true, features = ["test-util"] }

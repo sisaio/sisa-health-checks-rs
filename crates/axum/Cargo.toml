@@ -1,0 +1,28 @@
+[package]
+name = "sisa-health-checks-axum"
+description = "The /livez, /readyz and /health routes of Sisa Health Checks for axum"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords = ["health-check", "kubernetes", "axum", "readiness", "liveness"]
+categories = ["web-programming::http-server", "asynchronous"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# The registry whose probes and report the routes serve.
+sisa-health-checks-core = { workspace = true }
+
+# The router, handlers and responses.
+axum = { workspace = true }
+
+[dev-dependencies]
+# Sends requests to the router without a server.
+tower = { workspace = true, features = ["util"] }
+tokio = { workspace = true }
+serde_json = { workspace = true }

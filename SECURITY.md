@@ -1,0 +1,37 @@
+# Security
+
+Report a vulnerability privately through
+[GitHub security advisories](https://github.com/sisaio/sisa-health-checks-rs/security/advisories/new),
+not in a public issue.
+
+## Supported versions
+
+| Version | Security fixes |
+| --- | --- |
+| The latest 0.x minor release | Yes, as a patch release of that minor |
+| Older releases | No: upgrade to the latest minor |
+
+## After you report
+
+- You get a first answer within 7 days.
+- We confirm the problem with you, agree on a fix, and keep the advisory private until the fixed
+  release is on crates.io.
+- The fix ships as a patch release, and the advisory is published with it, crediting you unless
+  you'd rather not be named.
+
+## What counts
+
+A check's description or details reaching `/health` with a credential, a connection string or a
+query in it is a vulnerability, as is any way for a request to a probe to run a check or block
+the poller. `/health` itself is meant for an admin port; serving it publicly is a deployment
+choice, not a vulnerability.
+
+## Verifying a release
+
+Each GitHub release carries the crates' `.crate` files as crates.io serves them, checked against
+a packaging of the tagged source, and a Sigstore bundle with their SLSA build provenance, made by
+the release workflow. Check a downloaded crate with the GitHub CLI:
+
+```sh
+gh attestation verify sisa-health-checks-<version>.crate --repo sisaio/sisa-health-checks-rs
+```

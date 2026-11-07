@@ -1,0 +1,74 @@
+# The library crates and the example application.
+[workspace]
+members = ["crates/*", "examples/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Sang Au <auvansang@outlook.com>"]
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+repository = "https://github.com/sisaio/sisa-health-checks-rs"
+readme = "README.md"
+
+# Lints every package takes, through its `[lints] workspace = true`, for all its targets: library,
+# tests and examples. A name means one thing in its scope: a new binding may reuse one only for the
+# same value converted, such as `let name = name.into()`. Names are whole words, so no name is a
+# single letter.
+[workspace.lints.clippy]
+shadow_unrelated = "warn"
+min_ident_chars = "warn"
+
+[workspace.dependencies]
+# The library crates, at the coordinated version.
+sisa-health-checks = { path = "crates/sisa-health-checks", version = "0.1.0" }
+sisa-health-checks-core = { path = "crates/core", version = "0.1.0" }
+sisa-health-checks-axum = { path = "crates/axum", version = "0.1.0" }
+sisa-health-checks-postgres = { path = "crates/postgres", version = "0.1.0" }
+sisa-health-checks-redis = { path = "crates/redis", version = "0.1.0" }
+sisa-health-checks-nats = { path = "crates/nats", version = "0.1.0" }
+
+# Async building blocks: the poller task, per-check timeouts, and running checks side by side.
+tokio = { version = "1.53.3", features = ["rt", "macros", "time", "sync"] }
+futures-util = { version = "0.3.34", default-features = false, features = ["std"] }
+tracing = { version = "0.1.44" }
+
+# The OpenTelemetry metrics API: the registry records through it, and the application installs
+# the SDK.
+opentelemetry = { version = "0.33.1", default-features = false, features = ["metrics"] }
+opentelemetry_sdk = { version = "0.33.1" }
+
+# Error types: the mechanical `Display` and `Error` implementations.
+thiserror = { version = "2.0.21" }
+
+# Serialization: settings, and the `application/health+json` report.
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.154" }
+
+# The probe and report routes. Only the router is used, so no server or HTTP version is turned on.
+axum = { version = "0.8.9", default-features = false }
+tower = { version = "0.5.2", default-features = false }
+
+# The clients the dependency checks run on, without default features no check uses.
+sqlx = { version = "0.9.0", default-features = false, features = ["postgres", "runtime-tokio"] }
+redis = { version = "1.7.1", default-features = false, features = ["tokio-comp"] }
+async-nats = { version = "0.47.0" }
+
+# Tests: the shared helpers, and a server per test in Docker.
+sisa-health-checks-testing = { path = "crates/testing" }
+testcontainers = { version = "0.28.0", default-features = false }
+
+# Development and test builds keep line tables for backtraces but no full debug information, and
+# dependencies carry none, which shortens builds and links. This follows the Cargo book's
+# "Optimizing Build Performance" guide. `cargo test` uses this profile too.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# A debugger session needs full debug information: `cargo build --profile debugging`.
+[profile.debugging]
+inherits = "dev"
+debug = true
