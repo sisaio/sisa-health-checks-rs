@@ -53,7 +53,7 @@ tower = { version = "0.5.2", default-features = false }
 # The clients the dependency checks run on, without default features no check uses.
 sqlx = { version = "0.9.0", default-features = false, features = ["postgres", "runtime-tokio"] }
 redis = { version = "1.7.1", default-features = false, features = ["tokio-comp"] }
-async-nats = { version = "0.51.0" }
+async-nats = { version = "0.52.0" }
 
 # Tests: the shared helpers, and a server per test in Docker.
 sisa-health-checks-testing = { path = "crates/testing" }
