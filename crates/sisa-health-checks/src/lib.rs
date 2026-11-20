@@ -2,11 +2,11 @@
 //! background, `/livez` and `/readyz` probes that read the latest results, and an
 //! `application/health+json` report for people and dashboards.
 //!
-//! No framework or check is on by default; turn on the ones you use:
+//! No protocol or check is on by default; turn on the ones you use:
 //!
 //! | Feature | Adds |
 //! | --- | --- |
-//! | `axum` | `probe_routes` and `report_routes`: `/livez`, `/readyz` and `/health` |
+//! | `http` | The [`http`] module: the `/livez`, `/readyz` and `/health` answers as plain data, for any web framework |
 //! | `grpc` | `grpc_routes`: `grpc.health.v1.Health` for gRPC and Connect clients, on connectrpc |
 //! | `postgres` | `PostgresCheck`, on an sqlx pool, and the `sqlx` crate it is built on |
 //! | `redis` | `RedisCheck`, on any redis-rs async connection, and the `redis` crate |
@@ -39,11 +39,8 @@
 //! # }
 //! ```
 //!
-//! Without the `axum` feature, any web framework can serve the same answers from the [`http`]
-//! module: a status code, two headers and a body to copy into its own response.
-//!
 //! Your own checks implement [`HealthCheck`] with an `async fn`, or come from a closure through
-//! [`check_fn`]. Each part is also its own crate (`sisa-health-checks-core`, `-axum`, `-grpc`,
+//! [`check_fn`]. Each part is also its own crate (`sisa-health-checks-core`, `-http`, `-grpc`,
 //! `-postgres`, `-redis`, `-nats`), whose docs cover the details.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -55,13 +52,11 @@ pub use sisa_health_checks_core::{
     CheckContext, CheckReport, EventLoopCheck, FnCheck, HealthCheck, HealthError, HealthRegistry,
     HealthRegistryBuilder, HealthReport, HealthResult, HealthSettings, LIVE, NamedCheck,
     PollerHandle, Probe, ProbeLine, ProbeReport, ProvidesHealthChecks, READY, Status, check_fn,
-    http, metrics,
+    metrics,
 };
 
-#[cfg(feature = "axum")]
-pub use sisa_health_checks_axum::{
-    LIVE_PATH, READY_PATH, REPORT_PATH, probe_routes, report_routes,
-};
+#[cfg(feature = "http")]
+pub use sisa_health_checks_http as http;
 
 #[cfg(feature = "grpc")]
 pub use sisa_health_checks_grpc::{LIVE_SERVICE, READY_SERVICE, grpc_routes};

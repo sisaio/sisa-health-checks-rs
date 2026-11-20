@@ -1,0 +1,25 @@
+[package]
+name = "sisa-health-checks-http"
+description = "The /livez, /readyz and /health answers of Sisa Health Checks as plain data, for any web framework"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords = ["health-check", "kubernetes", "http", "readiness", "liveness"]
+categories = ["web-programming::http-server"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# The registry whose probes and report the answers are read from.
+sisa-health-checks-core = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros"] }
+serde_json = { workspace = true }
+# The crate docs show the handlers an axum application writes.
+axum = { workspace = true }

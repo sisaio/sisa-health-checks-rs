@@ -8,17 +8,17 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 readme.workspace = true
-keywords = ["health-check", "kubernetes", "readiness", "liveness", "axum"]
+keywords = ["health-check", "kubernetes", "readiness", "liveness", "http"]
 categories = ["web-programming", "asynchronous"]
 
 [lints]
 workspace = true
 
 [features]
-# No default: an application names the framework and the checks it uses.
+# No default: an application names the protocols and the checks it uses.
 default = []
-# The /livez, /readyz and /health routes for axum.
-axum = ["dep:sisa-health-checks-axum"]
+# The /livez, /readyz and /health answers as plain data, for any web framework.
+http = ["dep:sisa-health-checks-http"]
 # The grpc.health.v1.Health service for gRPC and Connect clients, on connectrpc.
 grpc = ["dep:sisa-health-checks-grpc"]
 # The PostgreSQL check, on an sqlx pool.
@@ -31,7 +31,7 @@ nats = ["dep:sisa-health-checks-nats"]
 [dependencies]
 # One crate per part; this one only re-exports them.
 sisa-health-checks-core = { workspace = true }
-sisa-health-checks-axum = { workspace = true, optional = true }
+sisa-health-checks-http = { workspace = true, optional = true }
 sisa-health-checks-grpc = { workspace = true, optional = true }
 sisa-health-checks-postgres = { workspace = true, optional = true }
 sisa-health-checks-redis = { workspace = true, optional = true }

@@ -24,7 +24,7 @@ min_ident_chars = "warn"
 # The library crates, at the coordinated version.
 sisa-health-checks = { path = "crates/sisa-health-checks", version = "0.1.0" }
 sisa-health-checks-core = { path = "crates/core", version = "0.1.0" }
-sisa-health-checks-axum = { path = "crates/axum", version = "0.1.0" }
+sisa-health-checks-http = { path = "crates/http", version = "0.1.0" }
 sisa-health-checks-postgres = { path = "crates/postgres", version = "0.1.0" }
 sisa-health-checks-redis = { path = "crates/redis", version = "0.1.0" }
 sisa-health-checks-nats = { path = "crates/nats", version = "0.1.0" }
@@ -48,7 +48,8 @@ thiserror = { version = "2.0.21" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.154" }
 
-# The probe and report routes. Only the router is used, so no server or HTTP version is turned on.
+# The web framework of the example service and of the tests that send a request to a router. No
+# library crate depends on it.
 axum = { version = "0.8.9", default-features = false }
 tower = { version = "0.5.2", default-features = false }
 

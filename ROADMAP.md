@@ -5,15 +5,13 @@ progress.
 
 ## 0.1.0
 
-The registry, the probes and the report, the axum routes, the gRPC health service, and checks
-for PostgreSQL, Redis and NATS.
+The registry, the probes and the report, their HTTP answers for any web framework, the gRPC
+health service, and checks for PostgreSQL, Redis and NATS.
 
 ## 0.2.0
 
 - Excluding checks per request, as the Kubernetes API server does with `?exclude=<name>`.
 - One path per check, such as `/readyz/postgres`, for debugging a single dependency.
-- Ready-made routes for other frameworks where users ask, as the axum crate is: actix-web, or a
-  plain `tower` service. Any framework can already serve the `http` module's answers.
 
 ## Later
 
