@@ -631,7 +631,8 @@ mod tests {
 
         health.run().await;
 
-        let line = &health.probe(Probe::Ready).lines()[0];
+        let readiness = health.probe(Probe::Ready);
+        let line = &readiness.lines()[0];
 
         assert!(!line.passed());
         assert_eq!(line.message(), "failed: timed out after 500 ms");
