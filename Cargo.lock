@@ -2545,7 +2545,7 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "sisa-health-checks"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "sisa-health-checks-core",
  "sisa-health-checks-grpc",
@@ -2558,7 +2558,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-core"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "futures-util",
  "opentelemetry",
@@ -2572,7 +2572,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-example-axum-service"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "axum",
  "redis",
@@ -2584,7 +2584,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-grpc"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "axum",
  "connectrpc",
@@ -2597,7 +2597,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-http"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "axum",
  "serde_json",
@@ -2607,7 +2607,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-nats"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "async-nats",
  "sisa-health-checks-core",
@@ -2617,7 +2617,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-postgres"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "sisa-health-checks-core",
  "sisa-health-checks-testing",
@@ -2627,7 +2627,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-redis"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "redis",
  "sisa-health-checks-core",
@@ -2637,7 +2637,7 @@ dependencies = [
 
 [[package]]
 name = "sisa-health-checks-testing"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "testcontainers",
  "tokio",

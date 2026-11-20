@@ -6,6 +6,28 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+## [0.0.1](https://github.com/sisaio/sisa-health-checks-rs/releases/tag/v0.0.1) - 2026-11-20
+
+### Added
+
+- *(http)* [**breaking**] move the HTTP answers to their own crate, drop axum
+- *(core)* give the probes and the report as plain HTTP answers
+- *(grpc)* serve grpc.health.v1.Health from the registry
+- add health registry, probes, and postgres, redis and nats checks
+
+### Changed
+
+- *(core)* log and record metrics outside the results lock
+
+### Fixed
+
+- *(core)* [**breaking**] fail the report when its results are stale
+- *(core)* catch a panic raised before a check's future
+
+### Other
+
+- Initial commit
+
 ### Added
 
 - *(core)* `HealthRegistry`, which runs checks in the background and answers the `live` and
