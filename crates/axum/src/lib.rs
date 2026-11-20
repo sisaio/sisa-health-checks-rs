@@ -245,6 +245,23 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn no_answer_may_be_cached() {
+        let registry = ran(HealthRegistry::builder()).await;
+
+        for path in ["/livez", "/readyz", "/health"] {
+            let request = Request::get(path)
+                .body(Body::empty())
+                .expect("the test builds a valid request");
+            let response = routes(registry.clone())
+                .oneshot(request)
+                .await
+                .expect("the router never fails");
+
+            assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
+        }
+    }
+
+    #[tokio::test]
     async fn there_is_no_healthz() {
         let registry = ran(HealthRegistry::builder()).await;
 
