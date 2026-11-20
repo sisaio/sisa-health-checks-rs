@@ -360,24 +360,28 @@ impl HealthRegistry {
     /// the probes and the report. Records the metrics and logs each change of status.
     pub async fn run(&self) {
         let outcomes = join_all(self.inner.checks.iter().map(run_check)).await;
+        let previous: Vec<Option<Status>> = self
+            .inner
+            .latest
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+            .outcomes
+            .iter()
+            .map(|before| before.as_ref().map(|outcome| outcome.result.status()))
+            .collect();
+
+        // Logged and recorded with no lock held, so a slow log writer never holds up a probe.
+        for ((registered, before), outcome) in self.inner.checks.iter().zip(previous).zip(&outcomes)
+        {
+            log_change(&registered.name, before, outcome);
+            METRICS.record(&registered.name, outcome.result.status(), outcome.duration);
+        }
+
         let mut latest = self
             .inner
             .latest
             .write()
             .unwrap_or_else(PoisonError::into_inner);
-
-        for ((registered, previous), outcome) in self
-            .inner
-            .checks
-            .iter()
-            .zip(&latest.outcomes)
-            .zip(&outcomes)
-        {
-            let previous = previous.as_ref().map(|before| before.result.status());
-
-            log_change(&registered.name, previous, outcome);
-            METRICS.record(&registered.name, outcome.result.status(), outcome.duration);
-        }
 
         latest.outcomes = outcomes.into_iter().map(Some).collect();
         latest.completed_at = Instant::now();
