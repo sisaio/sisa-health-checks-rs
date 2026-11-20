@@ -16,6 +16,8 @@ reviews:
       instructions: The PR changes crates/core.
     - label: "crate: axum"
       instructions: The PR changes crates/axum.
+    - label: "crate: grpc"
+      instructions: The PR changes crates/grpc.
     - label: "crate: postgres"
       instructions: The PR changes crates/postgres.
     - label: "crate: redis"
@@ -30,8 +32,9 @@ reviews:
       instructions: >-
         The PR breaks what CONTRIBUTING.md's "What the public API is" lists: it removes or
         changes a public item that isn't `#[doc(hidden)]`, a settings field name or default, a
-        metric name or attribute, a route path, the probe text or the report's JSON shape, or
-        moves to a release of sqlx, redis-rs or async-nats that breaks its API. A new item,
+        metric name or attribute, a route path, the probe text, the report's JSON shape or a
+        gRPC service name, or moves to a release of sqlx, redis-rs, async-nats or connectrpc that
+        breaks its API. A new item,
         setting or error variant isn't breaking. A commit subject with `!` always is.
 
   # Approve a PR once its findings are resolved, so Scorecard's Code-Review check sees the review.
@@ -73,7 +76,7 @@ reviews:
         Conventional Commits as CONTRIBUTING.md says: `type(scope): summary`, at most 72
         characters, no period at the end, the summary in the imperative. The type is one of feat,
         fix, perf, refactor, docs, test, build, ci, chore or revert. The scope is optional:
-        core, axum, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
+        core, axum, grpc, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
 
   # Commits on a PR come from its author only, so CodeRabbit doesn't write docstrings or tests.
   finishing_touches:

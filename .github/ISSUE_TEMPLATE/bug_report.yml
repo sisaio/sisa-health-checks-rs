@@ -15,6 +15,7 @@ body:
         - sisa-health-checks
         - sisa-health-checks-core
         - sisa-health-checks-axum
+        - sisa-health-checks-grpc
         - sisa-health-checks-postgres
         - sisa-health-checks-redis
         - sisa-health-checks-nats

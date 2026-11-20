@@ -49,7 +49,7 @@ jobs:
           echo "code=$code" >> "$GITHUB_OUTPUT"
           api=false
           if git diff --name-only "$BASE...$HEAD" | grep -qE \
-            '^crates/(core|axum|postgres|redis|nats|sisa-health-checks)/(src/|Cargo\.toml$)|^(Cargo\.toml|Cargo\.lock|rust-toolchain\.toml|\.github/workflows/ci\.yml)$'; then
+            '^crates/(core|axum|grpc|postgres|redis|nats|sisa-health-checks)/(src/|Cargo\.toml$)|^(Cargo\.toml|Cargo\.lock|rust-toolchain\.toml|\.github/workflows/ci\.yml)$'; then
             api=true
           fi
           echo "api=$api" >> "$GITHUB_OUTPUT"
@@ -102,7 +102,7 @@ jobs:
       # Alone, so the workspace's other members don't turn its features on.
       - name: Build the facade with each feature
         run: |
-          for features in "" axum postgres redis nats; do
+          for features in "" axum grpc postgres redis nats; do
             cargo check -p sisa-health-checks --features "$features" --locked
           done
 
@@ -200,7 +200,7 @@ jobs:
       # Every published crate with every feature; `--workspace` skips the unpublished ones. Each
       # crate is built twice, as it is and at the base, and on its own cargo-semver-checks gives
       # every build a target dir of its own. One shared dir builds the dependencies once instead of
-      # six times, which takes the job from about 4 minutes to 1.
+      # seven times, which takes the job from about 4 minutes to 1.
       - name: Check the public API
         if: steps.label.outputs.breaking != 'true'
         env:

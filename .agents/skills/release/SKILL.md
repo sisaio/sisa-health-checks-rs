@@ -6,7 +6,7 @@ description: Prepares a release of the sisa-health-checks crates (versions, chan
 # Release
 
 [release.yml](../../../.github/workflows/release.yml) opens the release PR with release-plz
-([release-plz.toml](../../../release-plz.toml)) and does the rest in its own jobs. The six
+([release-plz.toml](../../../release-plz.toml)) and does the rest in its own jobs. The seven
 library crates share one version, one changelog at the root and one `v<version>` tag.
 
 - Releases are cut by hand, so each one batches several changes. The maintainer opens the release
