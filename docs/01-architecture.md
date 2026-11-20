@@ -90,7 +90,7 @@ pass a shorter deadline to its client.
 6. **Status orders from best to worst.** `max` is the worst status; the failure cap is
    `status.min(failure)`. Comparing them the wrong way round turns outages into passes.
 7. **Stale results fail.** A poller that died must not leave the last good answer in place, so
-   both probes fail once results are older than the stale limit.
+   both probes and the report fail once results are older than the stale limit.
 
 ## Decisions
 
@@ -126,8 +126,8 @@ The last line is `<livez|readyz> check passed` or `<livez|readyz> check failed`.
 
 ### Report
 
-`GET /health`, `Content-Type: application/health+json`, 503 when a check is unhealthy and 200
-otherwise:
+`GET /health`, `Content-Type: application/health+json`, 503 when a check is unhealthy or the
+results are stale, and 200 otherwise:
 
 ```json
 {
@@ -157,7 +157,9 @@ otherwise:
 
 `status` is `pass`, `warn` or `fail` for healthy, degraded and unhealthy. A check that hasn't run
 is `fail` with `output` `not checked yet`. While draining, the report adds
-`"notes": ["draining: /readyz fails"]`.
+`"notes": ["draining: /readyz fails"]`. Once the results are stale, the top `status` is `fail`
+whatever the checks last found, each check keeps its last result, and `notes` gains
+`"stale: no new results; /livez and /readyz fail"`.
 
 ### Metrics
 
@@ -169,7 +171,8 @@ See [Observability](02-observability.md#metrics).
 - A poll ends within the longest check timeout, as long as every check awaits. A timeout can't
   interrupt code that blocks its thread, and the checks of a poll share one task, so a check that
   blocks holds up all of them until the results go stale and both probes fail.
-- A dead or stuck poller fails both probes within 3 polls plus the longest timeout.
+- A dead or stuck poller fails both probes and the report within 3 polls plus the longest
+  timeout.
 - The poller never starts a poll before the previous one ends, so it never runs a check twice at once.
 - Results are as old as one poll interval: an outage shows up to `poll_interval_ms` late. Lower
   the interval, not the probe period, to see it sooner.

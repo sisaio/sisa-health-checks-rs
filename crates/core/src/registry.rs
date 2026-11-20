@@ -493,7 +493,8 @@ impl HealthRegistry {
         ProbeReport::new(probe, lines)
     }
 
-    /// Every check's latest result, for the `/health` report.
+    /// Every check's latest result, for the `/health` report. Once the results are stale, the
+    /// report is unhealthy and says so, as both probes do.
     pub fn report(&self) -> HealthReport {
         let latest = self
             .inner
@@ -524,6 +525,7 @@ impl HealthRegistry {
         HealthReport {
             checks,
             draining: self.is_draining(),
+            stale: latest.completed_at.elapsed() > self.inner.stale_after,
         }
     }
 }
@@ -732,6 +734,31 @@ mod tests {
 
         assert!(!health.probe(Probe::Live).passed());
         assert!(!health.probe(Probe::Ready).passed());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn a_stale_report_fails_and_says_why() {
+        let health = registry(
+            HealthRegistry::builder().check_fn("postgres", async || HealthResult::healthy()),
+        );
+
+        health.run().await;
+        assert_eq!(health.report().http_status_code(), 200);
+
+        // Default settings: 3 intervals of 5 s, plus the check's 2 s timeout.
+        tokio::time::advance(Duration::from_secs(18)).await;
+
+        let report = health.report();
+        let json = report.to_json();
+
+        assert!(report.stale());
+        assert_eq!(report.http_status_code(), 503);
+        assert_eq!(json["status"], "fail");
+        assert_eq!(json["checks"]["postgres"][0]["status"], "pass");
+        assert_eq!(
+            json["notes"][0],
+            "stale: no new results; /livez and /readyz fail"
+        );
     }
 
     #[tokio::test(start_paused = true)]
