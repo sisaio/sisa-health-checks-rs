@@ -69,9 +69,8 @@ time.
 
 A change to any of these is breaking: it takes `!` in the commit and the `breaking` label.
 
-- Every public Rust item that isn't `#[doc(hidden)]`, such as `metrics::METRICS`: Rust has no
-  visibility between crates, so hidden items are `pub` for the other crates here, and a release
-  may change them.
+- Every public Rust item that isn't `#[doc(hidden)]`: Rust has no visibility between crates, so
+  a hidden item is `pub` only for the other crates here, and a release may change it.
 - The settings' field names, which config files use, and what each default is.
 - The routes (`/livez`, `/readyz`, `/health`), the probes' status codes and text, and the
   report's JSON shape in [docs/01-architecture.md](docs/01-architecture.md#formats): Kubernetes,
