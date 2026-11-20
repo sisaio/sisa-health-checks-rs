@@ -28,9 +28,8 @@ use opentelemetry::{
 use crate::status::Status;
 
 /// The instruments, each recorded through one method so the attribute names are written once.
-#[doc(hidden)]
 #[derive(Debug)]
-pub struct HealthMetrics {
+pub(crate) struct HealthMetrics {
     status: Gauge<f64>,
     duration: Histogram<f64>,
 }
@@ -50,8 +49,7 @@ impl HealthMetrics {
 }
 
 /// The instruments every registry records into.
-#[doc(hidden)]
-pub static METRICS: LazyLock<HealthMetrics> = LazyLock::new(|| {
+pub(crate) static METRICS: LazyLock<HealthMetrics> = LazyLock::new(|| {
     let meter = global::meter("sisa-health-checks");
 
     HealthMetrics {
