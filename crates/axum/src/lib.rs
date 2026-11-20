@@ -30,6 +30,9 @@
 //! ```
 //!
 //! Every answer has `Cache-Control: no-store`, so no proxy serves a stale one.
+//!
+//! The answers come from `sisa_health_checks_core::http`, which any other framework can serve
+//! too; this crate only puts axum's router around them.
 
 #![forbid(unsafe_code)]
 #![warn(missing_debug_implementations)]
@@ -42,72 +45,43 @@ use axum::{
     response::{IntoResponse, Response},
     routing::get,
 };
-use sisa_health_checks_core::{HealthRegistry, Probe};
+use sisa_health_checks_core::{
+    HealthRegistry, Probe,
+    http::{self, HttpAnswer},
+};
 
 /// The liveness route.
-pub const LIVE_PATH: &str = "/livez";
+pub const LIVE_PATH: &str = http::LIVE_PATH;
 
 /// The readiness route.
-pub const READY_PATH: &str = "/readyz";
+pub const READY_PATH: &str = http::READY_PATH;
 
 /// The report route.
-pub const REPORT_PATH: &str = "/health";
+pub const REPORT_PATH: &str = http::REPORT_PATH;
 
-const NO_STORE: &str = "no-store";
-const TEXT: &str = "text/plain; charset=utf-8";
-const HEALTH_JSON: &str = "application/health+json";
-
-/// Whether the query asks for every line: `?verbose`, or `?verbose=` with any value.
-fn is_verbose(query: Option<&str>) -> bool {
-    query.is_some_and(|query| {
-        query
-            .split('&')
-            .any(|pair| pair == "verbose" || pair.starts_with("verbose="))
-    })
-}
-
-/// The answer to `probe`: 200 or 503, with the text the Kubernetes API server would write.
-fn probe_response(registry: &HealthRegistry, probe: Probe, query: Option<&str>) -> Response {
-    let report = registry.probe(probe);
-    let status = if report.passed() {
-        StatusCode::OK
-    } else {
-        StatusCode::SERVICE_UNAVAILABLE
-    };
-
+/// The answer as an axum response.
+fn respond(answer: HttpAnswer) -> Response {
     (
-        status,
+        StatusCode::from_u16(answer.status).unwrap_or(StatusCode::SERVICE_UNAVAILABLE),
         [
-            (header::CONTENT_TYPE, TEXT),
-            (header::CACHE_CONTROL, NO_STORE),
+            (header::CONTENT_TYPE, answer.content_type),
+            (header::CACHE_CONTROL, answer.cache_control),
         ],
-        report.to_text(is_verbose(query)),
+        answer.body,
     )
         .into_response()
 }
 
 async fn livez(State(registry): State<HealthRegistry>, RawQuery(query): RawQuery) -> Response {
-    probe_response(&registry, Probe::Live, query.as_deref())
+    respond(http::probe(&registry, Probe::Live, query.as_deref()))
 }
 
 async fn readyz(State(registry): State<HealthRegistry>, RawQuery(query): RawQuery) -> Response {
-    probe_response(&registry, Probe::Ready, query.as_deref())
+    respond(http::probe(&registry, Probe::Ready, query.as_deref()))
 }
 
 async fn health(State(registry): State<HealthRegistry>) -> Response {
-    let report = registry.report();
-    let status =
-        StatusCode::from_u16(report.http_status_code()).unwrap_or(StatusCode::SERVICE_UNAVAILABLE);
-
-    (
-        status,
-        [
-            (header::CONTENT_TYPE, HEALTH_JSON),
-            (header::CACHE_CONTROL, NO_STORE),
-        ],
-        report.to_json().to_string(),
-    )
-        .into_response()
+    respond(http::report(&registry))
 }
 
 /// `GET /livez` and `GET /readyz`, for Kubernetes probes, as a router to merge into any other.
@@ -177,14 +151,6 @@ mod tests {
         Router::new()
             .merge(probe_routes(registry.clone()))
             .merge(report_routes(registry))
-    }
-
-    #[test]
-    fn verbose_is_read_from_the_query() {
-        assert!(is_verbose(Some("verbose")));
-        assert!(is_verbose(Some("exclude=x&verbose=1")));
-        assert!(!is_verbose(Some("verbosely")));
-        assert!(!is_verbose(None));
     }
 
     #[tokio::test]
