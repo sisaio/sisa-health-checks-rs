@@ -33,6 +33,7 @@ A check that stays down logs once, when it went down, not at every poll. Each ru
 | No points at all | `absent(sisa_health_status)` | The exporter stopped, or no pod is running |
 
 A poller that stops doesn't show in the metrics: the gauge keeps its last value, and the SDK
-goes on exporting it. The probes catch it instead, since both fail once the results are stale.
+goes on exporting it. The probes and the report catch it instead: they fail once the results are
+stale.
 
 Leave restarts and traffic to the probes; alert on the metrics, which keep history across pods.

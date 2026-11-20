@@ -56,6 +56,7 @@ Report findings; don't push fixes unless asked.
 | Before the first run, readiness fails and liveness passes | `before_the_first_run_readiness_fails_and_liveness_passes` |
 | Draining fails readiness, never liveness | `draining_fails_readiness_but_not_liveness` |
 | Stale results fail both probes | `stale_results_fail_both_probes` |
+| Stale results fail the report | `a_stale_report_fails_and_says_why` |
 | The probe text follows the Kubernetes API server | `a_passing_probe_says_ok`, `verbose_lists_every_line`, `a_failing_probe_lists_only_its_failures` |
 | There is no `/healthz` | `there_is_no_healthz` |
 
@@ -64,7 +65,8 @@ Report findings; don't push fixes unless asked.
 - `Status` derives `Ord` from best to worst, so `max` is the worst status and `min` the best.
 - `cargo +1.94 check` can fail where stable passes. Read the exit code, not a piped tail.
 - Not bugs, by design: a check that hasn't run yet passes `/livez` and fails `/readyz`; a
-  degraded check returns 200; `/health` returns 503 only when a check is unhealthy.
+  degraded check returns 200; `/health` returns 503 only when a check is unhealthy or its
+  results are stale.
 
 ## Report
 

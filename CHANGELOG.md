@@ -12,7 +12,7 @@ All notable changes are listed here. The format follows
   `ready` probes and the health report from their latest results
 - *(core)* the `HealthCheck` trait, `check_fn` for closures, and `EventLoopCheck`
 - *(core)* per-check tags, timeouts and failure status, draining, `wait_for_start`, and stale
-  results failing both probes
+  results failing both probes and the report
 - *(core)* the `sisa.health.status` and `sisa.health.check.duration` metrics
 - *(axum)* `/livez`, `/readyz` and `/health` routes
 - *(postgres)* `PostgresCheck` on an sqlx pool

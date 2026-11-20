@@ -6,7 +6,7 @@
 //! | `GET /livez` | 200 unless a check tagged `live` fails | `ok`, or the failing lines |
 //! | `GET /readyz` | 200 unless a check tagged `ready` fails, the registry drains, or it isn't started | `ok`, or the failing lines |
 //! | `GET /livez?verbose`, `GET /readyz?verbose` | The same status | Every line, as `[+]postgres ok` |
-//! | `GET /health` | 503 when any check is unhealthy, else 200 | `application/health+json` with every check |
+//! | `GET /health` | 503 when any check is unhealthy or the results are stale, else 200 | `application/health+json` with every check |
 //!
 //! The paths and the text answers follow the Kubernetes API server's own `/livez` and `/readyz`.
 //! There is no `/healthz`: Kubernetes deprecated it, as one endpoint can't answer both questions.

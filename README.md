@@ -97,7 +97,7 @@ again at the next poll; the check needs no timeout, retry or task of its own.
 | --- | --- | --- | --- | --- |
 | `/livez` | liveness and startup probes | every `live` check passes | one fails | `ok`, or `[+]`/`[-]` lines with `?verbose` |
 | `/readyz` | readiness probe | every `ready` check passes, started, not draining | otherwise | same |
-| `/health` | people and dashboards | no check unhealthy | one is | `application/health+json` |
+| `/health` | people and dashboards | no check unhealthy, results fresh | otherwise | `application/health+json` |
 
 ```text
 $ curl -i 'localhost:9090/readyz?verbose'

@@ -217,6 +217,7 @@ impl CheckReport {
 pub struct HealthReport {
     pub(crate) checks: Vec<CheckReport>,
     pub(crate) draining: bool,
+    pub(crate) stale: bool,
 }
 
 impl HealthReport {
@@ -230,8 +231,20 @@ impl HealthReport {
         self.draining
     }
 
-    /// The worst status of any check, with a check that hasn't run yet counted as unhealthy.
+    /// Whether the results are stale: no run has finished within the stale limit, so the poller
+    /// stopped or was never started. Both probes fail then, and the checks show what they last
+    /// found.
+    pub fn stale(&self) -> bool {
+        self.stale
+    }
+
+    /// The worst status of any check, with a check that hasn't run yet counted as unhealthy. A
+    /// stale report is unhealthy whatever its checks last found.
     pub fn status(&self) -> Status {
+        if self.stale {
+            return Status::Unhealthy;
+        }
+
         self.checks
             .iter()
             .map(|check| check.status.unwrap_or(Status::Unhealthy))
@@ -259,7 +272,7 @@ impl HealthReport {
     /// }
     /// ```
     ///
-    /// While the registry drains, `notes` says so.
+    /// While the results are stale or the registry drains, `notes` says so.
     pub fn to_json(&self) -> Value {
         let mut checks = Map::new();
 
@@ -272,8 +285,18 @@ impl HealthReport {
         report.insert("status".into(), self.status().as_health_json().into());
         report.insert("checks".into(), Value::Object(checks));
 
+        let mut notes = Vec::new();
+
+        if self.stale {
+            notes.push("stale: no new results; /livez and /readyz fail");
+        }
+
         if self.draining {
-            report.insert("notes".into(), json!(["draining: /readyz fails"]));
+            notes.push("draining: /readyz fails");
+        }
+
+        if !notes.is_empty() {
+            report.insert("notes".into(), notes.into());
         }
 
         Value::Object(report)
@@ -337,6 +360,7 @@ mod tests {
                 check("redis", None),
             ],
             draining: false,
+            stale: false,
         };
 
         assert_eq!(health.status(), Status::Unhealthy);
