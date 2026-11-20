@@ -12,8 +12,9 @@
 //! There is no `/healthz`: Kubernetes deprecated it, as one endpoint can't answer both questions.
 //! Point a startup probe at `/livez` with a generous `failureThreshold`.
 //!
-//! The probe routes say only whether each check passed, so they can stay open to the kubelet. The
-//! report shows details, so serve it behind your own authorization, or on an admin port only:
+//! The probe routes show each check's name, whether it passed and, when it failed or is degraded,
+//! its description, which a check writes to be safe to show, so they can stay open to the kubelet.
+//! The report shows details, so serve it behind your own authorization, or on an admin port only:
 //!
 //! ```
 //! use axum::Router;

@@ -10,8 +10,9 @@ use crate::{check::CheckContext, check::HealthCheck, result::HealthResult};
 const NAP: Duration = Duration::from_millis(10);
 
 /// Whether the Tokio runtime wakes tasks on time: it sleeps a few milliseconds and measures how
-/// late it wakes. Code that blocks a runtime thread, such as heavy computing or a blocking call
-/// outside `spawn_blocking`, makes every task late, and this check unhealthy.
+/// late it wakes. Code that blocks the runtime's threads, such as heavy computing or a blocking
+/// call outside `spawn_blocking`, makes tasks late, and this check unhealthy. On a multi-thread
+/// runtime it takes every worker being blocked: while one is free, the check still wakes on time.
 ///
 /// It checks the process only, so it belongs in the liveness probe:
 ///

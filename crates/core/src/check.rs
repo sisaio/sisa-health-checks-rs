@@ -5,11 +5,11 @@ use std::{fmt, future::Future, pin::Pin, sync::Arc, time::Duration};
 
 use crate::{result::HealthResult, status::Status};
 
-/// The tag of checks that `/livez` runs: whether the process should be restarted. Only checks of
+/// The tag of the checks `/livez` counts: whether the process should be restarted. Only checks of
 /// the process itself belong here, never a database or a broker.
 pub const LIVE: &str = "live";
 
-/// The tag of checks that `/readyz` runs: whether the pod should get traffic. Every check has it
+/// The tag of the checks `/readyz` counts: whether the pod should get traffic. Every check has it
 /// unless it is given other tags.
 pub const READY: &str = "ready";
 
@@ -40,8 +40,8 @@ impl CheckContext {
 /// A check of one dependency or of the process itself.
 ///
 /// The registry runs it in the background on every poll, with a timeout, and catches a panic, so
-/// `check` needs neither. Keep it cheap: one small query or command. Implement it with an
-/// `async fn`:
+/// `check` needs neither. Keep it cheap: one small query or command. Never block the thread in
+/// it: the timeout can only end a check at an `.await`. Implement it with an `async fn`:
 ///
 /// ```
 /// use sisa_health_checks_core::{CheckContext, HealthCheck, HealthResult};
@@ -150,7 +150,7 @@ impl NamedCheck {
         }
     }
 
-    /// Replaces the tags, which pick the probes that run the check: [`LIVE`] for `/livez`,
+    /// Replaces the tags, which pick the probes the check counts for: [`LIVE`] for `/livez`,
     /// [`READY`] for `/readyz`. Other tags are kept for the report.
     pub fn tags<I, T>(mut self, tags: I) -> Self
     where

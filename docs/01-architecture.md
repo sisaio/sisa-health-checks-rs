@@ -166,7 +166,9 @@ See [Observability](02-observability.md#metrics).
 ## Guarantees and limits
 
 - A probe never waits on a dependency and never makes a network call.
-- A poll ends within the longest check timeout, whatever the checks do.
+- A poll ends within the longest check timeout, as long as every check awaits. A timeout can't
+  interrupt code that blocks its thread, and the checks of a poll share one task, so a check that
+  blocks holds up all of them until the results go stale and both probes fail.
 - A dead or stuck poller fails both probes within 3 polls plus the longest timeout.
 - The poller never starts a poll before the previous one ends, so it never runs a check twice at once.
 - Results are as old as one poll interval: an outage shows up to `poll_interval_ms` late. Lower

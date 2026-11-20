@@ -29,7 +29,10 @@ A check that stays down logs once, when it went down, not at every poll. Each ru
 | --- | --- | --- |
 | A dependency is down | `min by (check) (sisa_health_status) == 0` for 2 minutes | Every pod sees it, so it is the dependency, not a pod |
 | One pod is unhealthy | `sisa_health_status == 0` on some pods only, for 5 minutes | Points at that pod's connection or network |
-| A check is slow | p99 of `sisa_health_check_duration` near its timeout | Timeouts are about to start |
-| No points at all | `absent(sisa_health_status)` | The poller or the exporter stopped |
+| A check is slow | p99 of `sisa_health_check_duration_seconds` near its timeout | Timeouts are about to start |
+| No points at all | `absent(sisa_health_status)` | The exporter stopped, or no pod is running |
+
+A poller that stops doesn't show in the metrics: the gauge keeps its last value, and the SDK
+goes on exporting it. The probes catch it instead, since both fail once the results are stale.
 
 Leave restarts and traffic to the probes; alert on the metrics, which keep history across pods.
