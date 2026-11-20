@@ -62,7 +62,7 @@ Report findings; don't push fixes unless asked.
 ## Gotchas
 
 - `Status` derives `Ord` from best to worst, so `max` is the worst status and `min` the best.
-- `cargo +1.89 check` can fail where stable passes. Read the exit code, not a piped tail.
+- `cargo +1.94 check` can fail where stable passes. Read the exit code, not a piped tail.
 - Not bugs, by design: a check that hasn't run yet passes `/livez` and fails `/readyz`; a
   degraded check returns 200; `/health` returns 503 only when a check is unhealthy.
 
