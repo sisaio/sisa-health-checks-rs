@@ -40,7 +40,8 @@ impl HealthMetrics {
     pub(crate) fn record(&self, name: &Arc<str>, status: Status, duration: Duration) {
         let check = KeyValue::new("check", Value::String(name.clone().into()));
 
-        self.status.record(status.gauge_value(), &[check.clone()]);
+        self.status
+            .record(status.gauge_value(), std::slice::from_ref(&check));
         self.duration.record(
             duration.as_secs_f64(),
             &[check, KeyValue::new("status", status.as_str())],

@@ -24,8 +24,6 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 
-use std::future::Future;
-
 use sisa_health_checks_core::{CheckContext, HealthCheck, HealthResult};
 pub use sqlx;
 use sqlx::PgPool;
@@ -45,18 +43,16 @@ impl PostgresCheck {
 
 // Runs `SELECT 1` and reports the pool's size beside it.
 impl HealthCheck for PostgresCheck {
-    fn check(&self, _context: &CheckContext) -> impl Future<Output = HealthResult> + Send {
-        async move {
-            let selected: Result<i32, sqlx::Error> =
-                sqlx::query_scalar("SELECT 1").fetch_one(&self.pool).await;
-            let result = match selected {
-                Ok(_) => HealthResult::healthy(),
-                Err(error) => HealthResult::unhealthy("SELECT 1 failed").with_error(&error),
-            };
+    async fn check(&self, _context: &CheckContext) -> HealthResult {
+        let selected: Result<i32, sqlx::Error> =
+            sqlx::query_scalar("SELECT 1").fetch_one(&self.pool).await;
+        let result = match selected {
+            Ok(_) => HealthResult::healthy(),
+            Err(error) => HealthResult::unhealthy("SELECT 1 failed").with_error(&error),
+        };
 
-            result
-                .with_detail("pool_size", self.pool.size())
-                .with_detail("pool_idle", self.pool.num_idle())
-        }
+        result
+            .with_detail("pool_size", self.pool.size())
+            .with_detail("pool_idle", self.pool.num_idle())
     }
 }

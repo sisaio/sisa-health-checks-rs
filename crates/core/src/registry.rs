@@ -173,6 +173,8 @@ impl HealthRegistryBuilder {
     }
 
     /// Adds a check with its options already set.
+    // Not arithmetic, so `std::ops::Add` doesn't fit: this `add` puts a check in the builder.
+    #[allow(clippy::should_implement_trait)]
     pub fn add(mut self, check: NamedCheck) -> Self {
         self.checks.push(check);
         self
