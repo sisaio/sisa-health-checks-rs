@@ -86,7 +86,10 @@ async fn run_check(registered: &Registered) -> Outcome {
     let context = CheckContext::new(registered.name.clone(), registered.timeout);
     let started = Instant::now();
     let span = tracing::debug_span!("health check", check = %registered.name);
-    let checking = AssertUnwindSafe(registered.check.check_boxed(&context)).catch_unwind();
+    // The call that makes the future sits inside the block, so `catch_unwind` covers it too: a
+    // closure from `check_fn` runs there, before any future exists.
+    let checking =
+        AssertUnwindSafe(async { registered.check.check_boxed(&context).await }).catch_unwind();
     let checked = timeout(registered.timeout, checking).instrument(span).await;
     let duration = started.elapsed();
 
@@ -646,6 +649,25 @@ mod tests {
             HealthRegistry::builder()
                 .check_fn("broken", async || -> HealthResult {
                     panic!("bug in a check")
+                })
+                .check_fn("postgres", async || HealthResult::healthy()),
+        );
+
+        health.run().await;
+
+        let lines = health.probe(Probe::Ready).lines().to_vec();
+
+        assert_eq!(lines[0].message(), "failed: the check panicked");
+        assert!(lines[1].passed());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn a_check_that_panics_before_its_future_fails_too() {
+        let health = registry(
+            HealthRegistry::builder()
+                // Not an async closure: the panic comes before there is a future to catch it in.
+                .check_fn("broken", || -> std::future::Ready<HealthResult> {
+                    panic!("bug before the future")
                 })
                 .check_fn("postgres", async || HealthResult::healthy()),
         );
