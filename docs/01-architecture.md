@@ -6,10 +6,12 @@
 flowchart LR
     facade[sisa-health-checks] --> core[sisa-health-checks-core]
     facade -.axum.-> axum[sisa-health-checks-axum]
+    facade -.grpc.-> grpc[sisa-health-checks-grpc]
     facade -.postgres.-> postgres[sisa-health-checks-postgres]
     facade -.redis.-> redis[sisa-health-checks-redis]
     facade -.nats.-> nats[sisa-health-checks-nats]
     axum --> core
+    grpc --> core
     postgres --> core
     redis --> core
     nats --> core
@@ -19,6 +21,7 @@ flowchart LR
 | --- | --- | --- |
 | `sisa-health-checks-core` | The registry, the `HealthCheck` trait, results, probes, the report, `EventLoopCheck`, metrics | tokio, futures-util, serde, opentelemetry, tracing |
 | `sisa-health-checks-axum` | `probe_routes` and `report_routes` | core, axum |
+| `sisa-health-checks-grpc` | `grpc_routes`, the `grpc.health.v1.Health` service | core, connectrpc, connectrpc-health |
 | `sisa-health-checks-postgres` | `PostgresCheck` | core, sqlx |
 | `sisa-health-checks-redis` | `RedisCheck` | core, redis |
 | `sisa-health-checks-nats` | `NatsCheck` | core, async-nats |
@@ -105,6 +108,8 @@ pass a shorter deadline to its client.
 | Degraded passes the probes | A degraded dependency is worth seeing, not worth losing traffic over. |
 | A check is a trait with `async fn`, erased internally | Users write plain async code; the boxing stays inside the registry. |
 | The report on its own router | It shows details meant for an admin port, which the application chooses. |
+| gRPC health on connectrpc | One router serves gRPC, gRPC-Web and Connect clients, so one crate covers all three. |
+| `Check` only, no `Watch` | The kubelet, Envoy and `grpc_health_probe` call `Check`. `Watch` needs a change notification in the core, and waits for a client that balances on health. |
 
 ## Formats
 
@@ -160,6 +165,19 @@ is `fail` with `output` `not checked yet`. While draining, the report adds
 `"notes": ["draining: /readyz fails"]`. Once the results are stale, the top `status` is `fail`
 whatever the checks last found, each check keeps its last result, and `notes` gains
 `"stale: no new results; /livez and /readyz fail"`.
+
+### gRPC health
+
+`grpc.health.v1.Health/Check`, for gRPC, gRPC-Web and Connect clients. The request's `service`
+picks the probe, and the answer is that probe's verdict, with no check name or description:
+
+| `service` | Answers from | `SERVING` | `NOT_SERVING` |
+| --- | --- | --- | --- |
+| `""` or `readyz` | `/readyz` | it would answer 200 | it would answer 503 |
+| `livez` | `/livez` | it would answer 200 | it would answer 503 |
+| any other name | | | the call fails with `NOT_FOUND` |
+
+`Watch` fails with `UNIMPLEMENTED`.
 
 ### Metrics
 

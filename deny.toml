@@ -18,6 +18,8 @@ version = 2
 confidence-threshold = 0.9
 allow = [
   "Apache-2.0",
+  # The zstd C library's license, used by zstd-sys through connectrpc's default compression.
+  "BSD-2-Clause",
   "BSD-3-Clause",
   # Boost Software License, used by xxhash-rust through redis.
   "BSL-1.0",

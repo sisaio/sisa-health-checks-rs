@@ -7,6 +7,7 @@
 //! | Feature | Adds |
 //! | --- | --- |
 //! | `axum` | `probe_routes` and `report_routes`: `/livez`, `/readyz` and `/health` |
+//! | `grpc` | `grpc_routes`: `grpc.health.v1.Health` for gRPC and Connect clients, on connectrpc |
 //! | `postgres` | `PostgresCheck`, on an sqlx pool, and the `sqlx` crate it is built on |
 //! | `redis` | `RedisCheck`, on any redis-rs async connection, and the `redis` crate |
 //! | `nats` | `NatsCheck`, on an async-nats client, and the `async_nats` crate |
@@ -39,7 +40,7 @@
 //! ```
 //!
 //! Your own checks implement [`HealthCheck`] with an `async fn`, or come from a closure through
-//! [`check_fn`]. Each part is also its own crate (`sisa-health-checks-core`, `-axum`,
+//! [`check_fn`]. Each part is also its own crate (`sisa-health-checks-core`, `-axum`, `-grpc`,
 //! `-postgres`, `-redis`, `-nats`), whose docs cover the details.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -58,6 +59,9 @@ pub use sisa_health_checks_core::{
 pub use sisa_health_checks_axum::{
     LIVE_PATH, READY_PATH, REPORT_PATH, probe_routes, report_routes,
 };
+
+#[cfg(feature = "grpc")]
+pub use sisa_health_checks_grpc::{LIVE_SERVICE, READY_SERVICE, grpc_routes};
 
 #[cfg(feature = "postgres")]
 pub use sisa_health_checks_postgres::{PostgresCheck, sqlx};

@@ -28,6 +28,7 @@ sisa-health-checks-axum = { path = "crates/axum", version = "0.1.0" }
 sisa-health-checks-postgres = { path = "crates/postgres", version = "0.1.0" }
 sisa-health-checks-redis = { path = "crates/redis", version = "0.1.0" }
 sisa-health-checks-nats = { path = "crates/nats", version = "0.1.0" }
+sisa-health-checks-grpc = { path = "crates/grpc", version = "0.1.0" }
 
 # Async building blocks: the poller task, per-check timeouts, and running checks side by side.
 # Tests and the example add `macros` for `#[tokio::test]` and `#[tokio::main]`.
@@ -50,6 +51,11 @@ serde_json = { version = "1.0.154" }
 # The probe and report routes. Only the router is used, so no server or HTTP version is turned on.
 axum = { version = "0.8.9", default-features = false }
 tower = { version = "0.5.2", default-features = false }
+
+# The gRPC health service: the router it is mounted on, which serves gRPC, gRPC-Web and Connect
+# clients, and the `grpc.health.v1.Health` protocol. No client is turned on.
+connectrpc = { version = "0.9.1", default-features = false }
+connectrpc-health = { version = "0.9.0", default-features = false }
 
 # The clients the dependency checks run on, without default features no check uses.
 sqlx = { version = "0.9.0", default-features = false, features = ["postgres", "runtime-tokio"] }
