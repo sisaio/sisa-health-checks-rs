@@ -1,19 +1,55 @@
 # Contributing
 
+Every sisaio repository has these sections in this order; what differs is the crates, the
+commands and the examples.
+
+## Workflow
+
+1. **An issue first.** Every PR closes an issue: open one with the matching form if none exists.
+   Only Dependabot's and release-plz's PRs come without one.
+2. **A branch** from `main`, named as [Branches](#branches) says, with one topic.
+3. **The change, with its tests and docs**, in commits that follow
+   [Commit messages](#commit-messages). Run [the checks](#build-and-check) before you push.
+4. **A PR** that says `Closes #n`, fills in the template, and carries its labels. Its assignee is
+   its author.
+5. **Review.** CI must pass, and the PR needs one approval given after its latest push.
+6. **Merge** with the rebase method, the only one allowed, so `main` stays linear.
+
+There is no project board. An issue's labels, milestone and assignee say where it stands, as
+[Issues, labels and milestones](#issues-labels-and-milestones) explains.
+
+## Local setup
+
+- **Rust** through rustup. The toolchain is pinned in `rust-toolchain.toml`, and rustup installs
+  it on the first `cargo` command.
+- **Docker**, for the tests: each one starts its own server.
+- **The Git hooks**, once per clone. They check each commit message as you make it and each
+  branch name as you push it, with the scripts CI runs:
+
+  ```sh
+  git config core.hooksPath .githooks
+  ```
+
+- **The tools the checks use:** [cargo-nextest](https://nexte.st),
+  [cargo-deny](https://github.com/EmbarkStudios/cargo-deny),
+  [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks) and
+  [lychee](https://github.com/lycheeverse/lychee).
+
 ## Build and check
 
-The toolchain is pinned in `rust-toolchain.toml`; the minimum supported Rust is 1.94. Before a
-PR, run what CI runs. `--locked` makes a command fail instead of quietly rewriting `Cargo.lock`,
-as in CI; a dependency change updates the lock file on purpose and commits it.
+The minimum supported Rust is the workspace's `rust-version`, 1.94. Before a PR, run what CI
+runs. `--locked` makes a command fail instead of quietly rewriting `Cargo.lock`, as in CI; a
+dependency change updates the lock file on purpose and commits it.
 
 ```sh
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-for f in "" http grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done
+(set -e; for f in "" http grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done)
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features --locked
 cargo +1.94 check --workspace --all-targets --all-features --locked
-cargo test --workspace --all-features --locked
+cargo nextest run --workspace --all-features --locked
+cargo test --doc --workspace --all-features --locked
 cargo deny check
 cargo semver-checks --workspace --all-features --baseline-rev origin/main   # unless labeled `breaking`
 lychee --offline --include-fragments --hidden --exclude-path '(^|/)(\.git|\.claude|target)/' './**/*.md'
@@ -23,17 +59,27 @@ A weekly workflow also checks the workspace with every direct dependency at its 
 version: `cargo +nightly update -Z direct-minimal-versions`, then `cargo check --workspace
 --all-targets --all-features`. Restore `Cargo.lock` afterwards.
 
+CodeQL scans the workflows on every PR and the Rust code on `main` after the merge and every
+week; its findings are under the repository's Security tab.
+
 ## Tests
 
 Unit tests sit at the end of the file they test, in `#[cfg(test)] mod tests`. Tests against a real
-server go in the check crate's `tests/it/` folder, which builds as one test binary. Each starts its
-own PostgreSQL, Redis or NATS server in Docker through `sisa-health-checks-testing`, so the suite
-needs Docker and nothing else. `POSTGRES_IMAGE`, `REDIS_IMAGE` and `NATS_IMAGE` pick the images,
-as `name:tag`; the defaults are `postgres:17-alpine`, `redis:8-alpine` and `nats:2-alpine`.
+server go in the check crate's `tests/it/` folder, which builds as one test binary, so the files
+run side by side. A test that installs something process-wide, such as a meter provider, gets a
+binary of its own. Each PostgreSQL, Redis or NATS test starts its own server in Docker through
+`sisa-health-checks-testing`, so the suite needs Docker and nothing else. `POSTGRES_IMAGE`,
+`REDIS_IMAGE` and `NATS_IMAGE` pick the images, as `name:tag`; the defaults are
+`postgres:17-alpine`, `redis:8-alpine` and `nats:2-alpine`, which CI tests.
 
 ```sh
-REDIS_IMAGE=valkey/valkey:8-alpine cargo test -p sisa-health-checks-redis
+REDIS_IMAGE=valkey/valkey:8-alpine cargo nextest run -p sisa-health-checks-redis
 ```
+
+[cargo-nextest](https://nexte.st) runs each test in a process of its own, and CI uses its `ci`
+profile from `.config/nextest.toml`, which runs every test even after one fails. It doesn't run
+the examples in doc comments; `cargo test --doc` does. `cargo test` still runs everything
+without it.
 
 Docker Hub limits anonymous pulls. When a pull fails with `429 Too Many Requests`, run
 `docker login`, or pull the image from Google's mirror under the name the tests use:
@@ -43,52 +89,29 @@ docker pull mirror.gcr.io/library/redis:8-alpine
 docker tag mirror.gcr.io/library/redis:8-alpine redis:8-alpine
 ```
 
-Coverage comes from [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), run by hand; CI
-doesn't measure it.
+Coverage comes from [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov); CI measures it on
+each push to main.
 
 ```sh
 cargo llvm-cov --workspace --all-features --ignore-filename-regex 'crates/testing/'
 ```
 
 Write tests a reader can follow: one behavior per test, named for that behavior, as few lines as
-it takes. Use paused Tokio time (`#[tokio::test(start_paused = true)]`) instead of sleeping on real
-time.
-
-## Code
-
-- Keep code minimal, readable, and working. Judge every change by that.
-- Read [docs/01-architecture.md](docs/01-architecture.md) first; its rules section lists what
-  reviews check.
-- API docs live in Rust doc comments: short, plain, with an example where it helps. Don't link
-  Markdown files from crate docs.
-- The pages in `docs/` explain how the library works. Draw diagrams in Mermaid, and update the
-  page a change affects in the same PR, above all the data formats in the architecture page.
-- Public names are reviewed with care; rename a parameter, its getter and its field together.
-
-### What the public API is
-
-A change to any of these is breaking: it takes `!` in the commit and the `breaking` label.
-
-- Every public Rust item that isn't `#[doc(hidden)]`: Rust has no visibility between crates, so
-  a hidden item is `pub` only for the other crates here, and a release may change it.
-- The settings' field names, which config files use, and what each default is.
-- The routes (`/livez`, `/readyz`, `/health`), the probes' status codes and text, the report's
-  JSON shape and the gRPC service names in
-  [docs/01-architecture.md](docs/01-architecture.md#formats): Kubernetes, load balancers and
-  dashboards match on them.
-- The metric names and attributes in [docs/02-observability.md](docs/02-observability.md).
-- The sqlx, redis-rs and async-nats types that reach the API through the re-exports, and
-  connectrpc's `Router`, which `grpc_routes` returns: moving to a release of one that breaks its
-  own API is breaking here too.
-
-What stays open: the settings struct and the error enum are `#[non_exhaustive]`, so a new setting
-or variant isn't breaking. Build settings from `default()` and set fields on it.
+it takes. Use paused Tokio time (`#[tokio::test(start_paused = true)]`) instead of sleeping on
+real time.
 
 ## Code style
 
+- Keep code minimal, readable, and working. Judge every change by that.
+- Read [docs/architecture.md](docs/architecture.md) first; its rules section lists what reviews
+  check.
+- Public names are reviewed with care; rename a parameter, its getter and its field together.
+
 `rustfmt.toml`, `clippy.toml` and the workspace's `[workspace.lints]` settle layout and lints, and
-CI fails on any of them. A new package takes those lints with `[lints] workspace = true`. What
-they don't check:
+CI fails on any of them. A new package takes those lints with `[lints] workspace = true`. They
+are the same in every sisaio crate repository: no unsafe code, docs and `Debug` on every public
+item, whole-word names, one meaning per name, and no `unwrap`, `dbg!` or `todo!` in library code.
+What they don't check:
 
 - Imports come in groups separated by a blank line: `std`, other crates, then `crate` and
   `super`.
@@ -116,99 +139,126 @@ they don't check:
 - Every public type implements `Debug`, which `missing_debug_implementations` checks. A check's
   shows its name or options, never a connection, a credential or a result's error.
 
-## Issues and labels
+## Public API and breaking changes
 
-Every issue has a type: Bug, Feature or Task. The issue forms set it; set it yourself on an issue
-opened another way. Docs work is a Task. Pull requests have no type; their linked issue has it.
+A change to any of these is breaking: it takes `!` in the commit and the `breaking` label.
 
-Every issue and pull request also gets labels from these groups, so anyone can filter the work:
+- Every public Rust item that isn't `#[doc(hidden)]`. Hidden items aren't part of the supported
+  API: Rust has no visibility between crates, so they are `pub` for the other crates of this
+  workspace and their tests, and any crate can still reach them, but a release may change them.
+- The settings' field names, which config files use, and what each default is.
+- The [data formats](docs/formats.md): the routes (`/livez`, `/readyz`, `/health`), the probes'
+  status codes and text, the report's JSON shape and the gRPC service names. Kubernetes, load
+  balancers and dashboards match on them.
+- The metric names and attributes in [docs/observability.md](docs/observability.md).
+- The sqlx, redis-rs and async-nats types that reach the API through the re-exports, and
+  connectrpc's `Router`, which `grpc_routes` returns: moving to a release of one that breaks its
+  own API is breaking here too.
+
+The settings struct and the error enum are `#[non_exhaustive]`, so a new setting or variant isn't
+breaking. Build settings from `default()` and set fields on it.
+
+## Docs
+
+- API docs live in Rust doc comments: short, plain, with an example where it helps. Don't link
+  Markdown files from crate docs.
+- The pages in `docs/` explain how the library works, and [docs/README.md](docs/README.md) says
+  which page holds what. Update the page a change affects in the same PR: the crate's
+  [spec](docs/specs/README.md) when what it does changes, and [docs/formats.md](docs/formats.md)
+  when a route, the probe text, the report's JSON or a gRPC service name does.
+- A choice that is hard to reverse, or that changes a rule, a data format or a dependency, gets
+  an [ADR](docs/adr/README.md): open it as Proposed in the PR that needs it. An accepted ADR is
+  never rewritten; a new one supersedes it.
+- Draw diagrams in Mermaid, number the steps of a flow, prefer a table to a long list, and wrap
+  at 100 columns.
+
+## Issues, labels and milestones
+
+Every issue has a type: Bug, Feature or Task. The issue forms set it, with the matching `type:`
+label; set both yourself on an issue opened another way. Docs work is a Task. Pull requests have
+no type; they carry a `type:` label.
+
+Every issue and pull request gets labels from these groups, so anyone can filter the work:
 
 | Group | Labels | Rule |
 | --- | --- | --- |
-| Crate | `crate: sisa-health-checks`, `crate: core`, `crate: http`, `crate: grpc`, `crate: postgres`, `crate: redis`, `crate: nats`, `ci` | Every part the change touches. |
-| Other | `documentation`, `needs info`, `breaking`, `good first issue`, `help wanted` | When they apply. |
-| Automated | `dependencies`, `release` | Set by Dependabot and release-plz on their PRs. |
+| Type | `type:feature`, `type:bug`, `type:security`, `type:perf`, `type:docs`, `type:chore`, `type:deps` | One. On a PR, the one its title's type maps to: `feat`, `fix` or `revert`, `security`, `perf`, `docs`; `type:chore` for `refactor`, `test`, `build`, `ci` and `chore`. |
+| Area | `area:facade`, `area:core`, `area:http`, `area:grpc`, `area:postgres`, `area:redis`, `area:nats`, `area:testing`, `area:ci` | Every part the change touches. An area is named like its commit scope. |
+| State | `needs-info`, `blocked`, `priority:high`, `breaking`, `good first issue`, `help wanted` | When they apply. |
+| Automated | `type:deps`, `release` | Set by Dependabot and release-plz on their PRs. |
 
-- `documentation`: docs only, such as doc comments, `docs/` or the README.
-- `needs info`: the reporter owes details or a reproduction. Remove it once they answer.
+- `needs-info`: the reporter owes details or a reproduction. Remove it once they answer.
+- `blocked`: the work waits on something else. A comment says what.
+- `priority:high`: do next. The maintainer sets it.
 - `breaking`: the public API or a data format changes. The PR says how to migrate. CI's `semver`
   job fails a PR that breaks a published crate's API, against the PR's base, without it; re-run
   the job after adding it.
 - Close a duplicate as "duplicate" with a link, and a declined request as "not planned" with the
   reason. Answer a question in its issue, then close it.
 
-Work moves across the `sisa-health-checks` project board:
+Where an issue stands shows on the issue itself:
 
-```mermaid
-flowchart LR
-    opened([New issue]) --> Backlog
-    Backlog -->|accepted, milestone set| Ready
-    Ready -->|assigned| InProgress[In Progress]
-    InProgress -->|waiting on something else| Blocked
-    Blocked -->|unblocked| InProgress
-    InProgress -->|"PR opened with Closes #n"| InReview[In Review]
-    InReview -->|changes requested| InProgress
-    InReview -->|PR merged| Done
-    Backlog -->|closed as duplicate or not planned| Done
-    Done -->|reopened| Backlog
-```
-
-Only the maintainer moves an issue to Ready and sets its milestone and Priority (P0 urgent to P3
-low); work the maintainer asks for directly gets the next release's milestone when its issue is
-opened. Assign yourself before starting so two people don't take the same issue; the maintainer
-moves it to In Progress. The board's workflows do the rest: a new issue lands in Backlog, a PR
-with `Closes #n` moves it to In Review, and closing or merging moves it to Done. A Blocked issue
-says in a comment what it waits on. Start date and Target date place an issue on the Roadmap
-view.
+| State | How it shows |
+| --- | --- |
+| New | Open, with no milestone |
+| Accepted | Has a milestone, which only the maintainer sets |
+| In progress | Has an assignee: assign yourself before starting, so two people don't take the same issue |
+| Blocked | Has `blocked` |
+| In review | A PR that says `Closes #n` is linked |
+| Done | Closed by the merged PR |
 
 A milestone is a release, and its due date is the target. Every issue that ends in a merged PR
-needs one before the PR merges, so the milestone shows what the release ships. Releases are cut
-by hand, so a merged issue can be Done before it ships: while its milestone is open, its release
-isn't out yet. The maintainer closes a milestone once its release is published.
+needs one before the PR merges, so the milestone shows what the release ships; work the
+maintainer asks for directly gets the next release's milestone when its issue is opened.
+Releases are cut by hand, so an issue can be closed before it ships: while its milestone is
+open, its release isn't out yet. The maintainer closes a milestone once its release is
+published.
 
-The labels, milestones, board and the rulesets on `main` and the `v*` tags are kept in
-[.github/scripts](.github/scripts/README.md). Change them there in a PR, and a maintainer runs the
-script after the merge. A run overwrites what it manages, so a change made only on GitHub doesn't
-last.
+The labels and milestones are kept in [.github/labels.yml](.github/labels.yml) and
+[.github/milestones.yml](.github/milestones.yml), and a workflow syncs GitHub with them after
+each merge. The rulesets on `main` and the `v*` tags are in
+[.github/scripts](.github/scripts/README.md), which an admin runs. Change them there in a PR: a
+sync overwrites what it manages, so a change made only on GitHub doesn't last.
 
-## Git
+## Branches
 
-- Every PR closes an issue: open one first if none exists, and say `Closes #n` in the PR. Only
-  Dependabot's and release-plz's PRs come without one.
-- A PR's assignee is its author, and it carries the crate labels of its issue. The type,
-  milestone and Priority stay on the issue.
 - Branch from `main` as `<type>/<issue>-<topic>`, one topic per PR. `<type>` is the
   [commit type](#commit-messages) of the change and `<issue>` the number of the issue it closes,
-  such as `feat/31-kafka-check`, `fix/42-nats-reconnect` or `ci/17-tag-ruleset`. Dependabot's and
-  release-plz's branches keep their own names.
+  such as `feat/31-exclude-checks`, `fix/42-nats-reconnect` or `ci/17-tag-ruleset`. The topic
+  is lowercase words joined by `-`.
+- A `docs/` or `chore/` branch for work with no issue may leave the number out, such as
+  `docs/readme-badges`. Dependabot's and release-plz's branches keep their own names.
 - Bring a branch up to date by rebasing onto `main`; don't merge `main` into it.
-- PRs merge with the rebase method once CI is green.
-- Commit messages and PR titles follow [Commit messages](#commit-messages).
+- The pre-push hook checks the name, and CI checks it again on the PR.
 
-### Commit messages
+## Commit messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). release-plz reads
 the type to pick the changelog section and the version bump.
 
 ```text
-fix(nats): report a reconnecting client as unhealthy
+fix(redis): fail the check when PING answers anything but PONG
 
 What was wrong and why this fixes it, wrapped at 72 columns.
 ```
 
-- The subject is `type(scope): summary`, at most 72 characters, with no period at the end.
-  Write the summary in the imperative: "add", "fix", "keep".
+- The subject is `type(scope): summary`, at most 72 characters, with no period at the end. Write
+  the summary in the imperative, starting lowercase: "add", "fix", "keep".
 - The scope is optional. Use it when the change sits in one crate: `core`, `http`, `grpc`,
-  `postgres`, `redis`, `nats` or `facade`, or `deps` for a dependency bump.
+  `postgres`, `redis`, `nats`, `testing` or `facade`. Every repository also has `deps` for a
+  dependency bump, `docs` for the pages in `docs/`, and `release`.
 - Add `!` after the type or scope for a breaking change (`feat(core)!: ...`), and say how to
   migrate in the body.
 - The body says what changed and why. Put `[skip ci]` there, never in the subject.
-- A PR title follows the same rule, since it names the change on the board.
+- No `Co-authored-by` trailer: a commit carries its author's own name.
+- A PR title follows the same rule: with rebase merges, the title names the change in the list
+  of PRs and its commits land on `main` as they are.
 
 | Type | For | Changelog |
 | --- | --- | --- |
 | `feat` | a new capability for users | Added |
 | `fix` | a bug fix | Fixed |
+| `security` | a security fix or hardening | Security |
 | `perf` | a speed or memory improvement | Changed |
 | `refactor` | a code change users don't see | left out |
 | `docs` | docs and doc comments only | left out |
@@ -218,10 +268,20 @@ What was wrong and why this fixes it, wrapped at 72 columns.
 | `chore` | anything else, such as releases | left out |
 | `revert` | undoing an earlier commit | Fixed |
 
-A hook checks each commit as you make it. Turn it on once per clone:
+The commit-msg hook checks each commit as you make it; `fixup!` and `squash!` commits pass
+locally, for `git rebase --autosquash`, and fail in CI, so none reaches `main`. CI runs the same
+hook on a PR's commits and title.
 
-```sh
-git config core.hooksPath .githooks
-```
+## Releases
 
-CI runs the same check on a PR's commits and title.
+Releases are cut by hand, so each one batches several changes. The maintainer runs the release
+workflow, which opens a release PR with the version bump and the changelog section; merging it
+tags the commit, drafts the GitHub release, waits for CI and the maintainer's approval, and
+publishes the crates to crates.io. A run that stopped halfway is finished by re-running its
+failed jobs: what is already published is skipped. The steps are in the
+[release skill](.agents/skills/release/SKILL.md), and what the workflow needs on GitHub in
+[.github/scripts](.github/scripts/README.md#releases).
+
+## License
+
+Contributions are under the [MIT license](LICENSE), like the rest of the repository.

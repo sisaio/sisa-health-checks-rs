@@ -187,13 +187,13 @@ Kubernetes `grpc:` probe.
 
 Each run records `sisa.health.status` (1, 0.5 or 0) and `sisa.health.check.duration` per check
 through the OpenTelemetry metrics API, and each change of status is one log line.
-[docs/02-observability.md](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/02-observability.md)
+[docs/observability.md](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/observability.md)
 lists them and what to alert on.
 
 ## More
 
-- [Docs](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/00-overview.md): an
-  overview, then architecture and observability, in reading order.
+- [Docs](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/README.md): the
+  architecture, each crate's spec, the formats, the flows, observability and the decisions.
 - [Roadmap](https://github.com/sisaio/sisa-health-checks-rs/blob/main/ROADMAP.md) and
   [changelog](https://github.com/sisaio/sisa-health-checks-rs/blob/main/CHANGELOG.md).
 - [Contributing](https://github.com/sisaio/sisa-health-checks-rs/blob/main/CONTRIBUTING.md):

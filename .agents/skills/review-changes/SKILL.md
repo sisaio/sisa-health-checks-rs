@@ -14,17 +14,18 @@ Report findings; don't push fixes unless asked.
 - [ ] Run the checks in [CONTRIBUTING.md](../../../CONTRIBUTING.md#build-and-check). Note each
       failure with its first error.
 - [ ] Check the diff against the
-      [rules](../../../docs/01-architecture.md#rules-that-hold-the-design-together), the
-      [decisions](../../../docs/01-architecture.md#decisions) and the
-      [code rules](../../../AGENTS.md#code) in AGENTS.md. The ones most often broken:
+      [rules](../../../docs/architecture.md#rules-that-hold-the-design-together), the
+      [decisions](../../../docs/adr/README.md) and the
+      [hard rules](../../../AGENTS.md#hard-rules) in AGENTS.md. The ones most often broken:
   - a probe or the report never runs a check: they read the poller's latest results;
   - a check shipped for `live` never touches a dependency;
   - a response never carries a result's error, only its description;
   - no new dependency in a library crate.
 - [ ] Check what goes with the change: a test for each new behavior, doc comments on new public
-      items, the `docs/` page it affects (above all the
-      [formats](../../../docs/01-architecture.md#formats)), and `breaking` on the PR if the
-      public API, a route, the probe text or the report's JSON changed.
+      items, the crate's [spec](../../../docs/specs/README.md) when what it does changed,
+      [Formats](../../../docs/formats.md) when a route, the probe text, the report's JSON or a
+      gRPC service name changed, an [ADR](../../../docs/adr/README.md) for a choice that is hard
+      to reverse, and `breaking` on the PR if the public API or a format changed.
 - [ ] Check the docs in the diff: doc comments are short and plain with an example where it
       helps, and never link a Markdown file; `docs/` pages use Mermaid for diagrams and tables
       over long lists; every relative link and `#anchor` resolves.
@@ -32,19 +33,42 @@ Report findings; don't push fixes unless asked.
       [Commit messages](../../../CONTRIBUTING.md#commit-messages): the type matches the change
       (`feat` only for something users can do now, `!` for a breaking change).
 - [ ] Look for bugs: a lock held across `.await`, a check that can wait without a bound inside
-      its own code, an error swallowed without a log, and a status compared the wrong way
-      round (`Status` orders from best to worst).
+      its own code, an error swallowed without a log, a status compared the wrong way
+      round (`Status` orders from best to worst), and the patterns past reviews found (below).
 - [ ] Look for what only shows at scale or during an outage: a std lock or a long loop on an
       async thread, a second poller for one registry, work done per probe request, and how many
       log lines and metric points each poll makes while a dependency is down.
 
+## Bugs past reviews found
+
+Each was real and passed CI in sisa-caching-rs, whose async code has the same shape. Look for the
+same shape anywhere in a change.
+
+- A flag released before a final recheck, with no ordering that makes the other side's writes
+  visible. Pair the swaps with `AcqRel` and recheck after releasing.
+- A last-owner check (`Arc::strong_count`) made outside the lock that hands out clones.
+- A time read before waiting for a lock, then compared with what was written during the wait.
+- Callers that wait on a shared operation and take its success for granted. Hand them its error,
+  and let them redo it if its owner was cancelled.
+- A future dropped halfway (a check's timeout, a `select!`) that leaves shared state behind: a
+  held lock, a result never stored, a poller that never stops.
+- A watermark that vouches for a run of finished items while an earlier one is still running.
+- A span or log line on a helper another path also calls, or a log line per poll while a check
+  stays down.
+- A test that can't fail: a wait for a value the test never set, or a sleep standing in for proof
+  that something happened. Break the code the test guards and watch it fail.
+
 ## Whole-repository review
 
 - [ ] Start from `main`'s head and note its commit. Read
-      [Guarantees and limits](../../../docs/01-architecture.md#guarantees-and-limits) and the
-      rules first, then each crate.
-- [ ] For each invariant below, check the test still guards it: break the code and see it fail.
-      An invariant the docs promise with no test is a finding.
+      [Guarantees and limits](../../../docs/architecture.md#guarantees-and-limits) and the
+      [rules](../../../docs/architecture.md#rules-that-hold-the-design-together) first, then
+      each crate.
+- [ ] For each invariant below, check a test still guards it: break the code and see it fail.
+      An invariant the docs promise with no test is a finding. Name the test in the table once
+      it exists.
+- [ ] Measure before calling something slow, in alternating rounds of the old and the new code;
+      for a change under 5%, compare callgrind instruction counts instead.
 - [ ] Write the findings as one document: severity, evidence, and the fix grouped into proposed
       PRs, each needing its own issue.
 
