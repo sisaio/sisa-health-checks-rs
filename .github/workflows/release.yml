@@ -5,8 +5,8 @@
 #   by hand, such as `0.4.0-rc.1` for a first rc or `0.4.0` for the final. Run it again to bring the
 #   PR up to date with main; nothing else touches it;
 # - when a push to main changes the version or the changelog, as merging that PR does, and its
-#   version has no `v<version>` tag yet: tags the commit, creates the GitHub release from the
-#   changelog as a draft, waits for CI to pass on that commit and for
+#   version has a changelog section and no `v<version>` tag yet: tags the commit, creates the
+#   GitHub release from the changelog as a draft, waits for CI to pass on that commit and for
 #   the maintainer to approve the `release` environment, publishes the crates to crates.io, checks
 #   that crates.io serves the `.crate` files the tag packages to and attaches them with a signed
 #   provenance attestation to the draft, and then publishes the release.
@@ -22,8 +22,8 @@
 name: Release
 
 on:
-  # Every release PR bumps the version in the root Cargo.toml, though it may add no changelog
-  # entry. Another change to either file, such as a dependency bump, finds its version tagged.
+  # Every release PR changes the root Cargo.toml or the changelog. Another change to either file,
+  # such as a dependency bump, finds its version tagged, or with no changelog section yet.
   push:
     branches: [main]
     paths: [Cargo.toml, CHANGELOG.md]
@@ -40,8 +40,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # Tags the pushed commit and drafts its release, unless its version is tagged already. A push
-  # while an earlier release waits for approval finds the tag on another commit and does nothing.
+  # Tags the pushed commit and drafts its release, unless its version is tagged already or has no
+  # section in the changelog: only a release writes one, so a dependency bump before the first
+  # release, when no tag exists yet, releases nothing. A push while an earlier release waits for
+  # approval finds the tag on another commit and does nothing.
   # A rerun of a run that failed after tagging finds the tag on its own commit, with no published
   # release, and carries on from there.
   tag:
@@ -69,6 +71,10 @@ jobs:
         run: |
           version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')
           tag="v$version"
+          if ! grep -qF "## [$version]" CHANGELOG.md; then
+            echo "::notice::CHANGELOG.md has no section for $version; nothing to release"
+            exit 0
+          fi
           # `isDraft` of the version's release, or nothing when it has none.
           draft=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2> /dev/null || true)
           if git rev-parse -q --verify "refs/tags/$tag" > /dev/null; then
