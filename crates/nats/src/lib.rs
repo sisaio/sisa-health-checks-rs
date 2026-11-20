@@ -24,10 +24,6 @@
 //! Tag it `ready` when the pod consumes from NATS. When it only publishes through an outbox, the
 //! outbox holds messages while NATS is down, so give it `failure(Status::Degraded)` instead.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 use std::fmt;
 
 pub use async_nats;

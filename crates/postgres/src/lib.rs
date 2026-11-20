@@ -20,10 +20,6 @@
 //! before requests time out. The check waits for a connection like any query does, so keep the
 //! pool's acquire timeout under the check's timeout to see the pool's own error.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 use sisa_health_checks_core::{CheckContext, HealthCheck, HealthResult};
 pub use sqlx;
 use sqlx::PgPool;

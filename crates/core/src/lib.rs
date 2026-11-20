@@ -53,10 +53,6 @@
 //! their status and duration through the OpenTelemetry metrics API, as the [`metrics`] module
 //! lists.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 mod check;
 mod error;
 pub mod metrics;
