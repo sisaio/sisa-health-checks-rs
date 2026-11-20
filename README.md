@@ -9,7 +9,7 @@
 
 Kubernetes-style health checks for Rust services: a registry that runs checks in the background,
 `/livez` and `/readyz` probes that answer from the latest results, an `application/health+json`
-report, and ready-made checks for PostgreSQL, Redis and NATS.
+report, the gRPC health service, and ready-made checks for PostgreSQL, Redis and NATS.
 
 ## What you get
 
@@ -17,12 +17,13 @@ report, and ready-made checks for PostgreSQL, Redis and NATS.
 | --- | --- |
 | (always) | `HealthRegistry`, the `HealthCheck` trait, `check_fn` for closures, `EventLoopCheck`, OpenTelemetry metrics |
 | `axum` | `probe_routes` (`/livez`, `/readyz`) and `report_routes` (`/health`) |
+| `grpc` | `grpc_routes`, the `grpc.health.v1.Health` service for gRPC and Connect clients, on connectrpc |
 | `postgres` | `PostgresCheck`, `SELECT 1` on an sqlx pool |
 | `redis` | `RedisCheck`, `PING` on any redis-rs async connection |
 | `nats` | `NatsCheck`, the connection state and a flush on an async-nats client |
 
 Everything comes from one crate, `sisa-health-checks`; no feature is on by default. Each part is
-also its own crate (`sisa-health-checks-core`, `-axum`, `-postgres`, `-redis`, `-nats`).
+also its own crate (`sisa-health-checks-core`, `-axum`, `-grpc`, `-postgres`, `-redis`, `-nats`).
 
 ## Quick start
 
@@ -115,6 +116,11 @@ readyz check failed
 The paths and text follow the Kubernetes API server's own `/livez` and `/readyz`. There is no
 `/healthz`, which Kubernetes deprecated, and no `/startupz`: point the startup probe at `/livez`.
 Serve `/health` on an admin port only, since it shows each check's details.
+
+With the `grpc` feature, `grpc.health.v1.Health/Check` answers the same two questions to gRPC and
+Connect clients: the service name `livez` asks for liveness, and `readyz` or the empty name for
+readiness. Merge `grpc_routes(registry)` into your connectrpc router, and name the service in a
+Kubernetes `grpc:` probe.
 
 ## Observability
 

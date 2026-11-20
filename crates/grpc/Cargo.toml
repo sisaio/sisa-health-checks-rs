@@ -1,0 +1,31 @@
+[package]
+name = "sisa-health-checks-grpc"
+description = "The grpc.health.v1.Health service of Sisa Health Checks, for gRPC and Connect clients, on connectrpc"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords = ["health-check", "kubernetes", "grpc", "connectrpc", "readiness"]
+categories = ["web-programming::http-server", "asynchronous"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# The registry whose probes the service answers from.
+sisa-health-checks-core = { workspace = true }
+
+# The router the service is mounted on, and the health protocol itself.
+connectrpc = { workspace = true }
+connectrpc-health = { workspace = true }
+
+[dev-dependencies]
+# Sends requests to the router without a server.
+connectrpc = { workspace = true, features = ["axum"] }
+axum = { workspace = true }
+tower = { workspace = true, features = ["util"] }
+tokio = { workspace = true, features = ["macros"] }
+serde_json = { workspace = true }

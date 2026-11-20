@@ -5,8 +5,8 @@ progress.
 
 ## 0.1.0
 
-The registry, the probes and the report, the axum routes, and checks for PostgreSQL, Redis and
-NATS.
+The registry, the probes and the report, the axum routes, the gRPC health service, and checks
+for PostgreSQL, Redis and NATS.
 
 ## 0.2.0
 
@@ -20,4 +20,5 @@ Ideas that wait until users ask for them:
 
 - More checks, each its own crate: Kafka, RabbitMQ, an HTTP dependency, disk space.
 - A check that turns unhealthy after it has been degraded for a set time.
-- A gRPC health service (`grpc.health.v1.Health`) on the same registry.
+- `Watch` on the gRPC health service, for clients that balance on health.
+- The gRPC health service on tonic, beside the connectrpc one.
