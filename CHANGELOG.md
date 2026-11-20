@@ -14,6 +14,8 @@ All notable changes are listed here. The format follows
 - *(core)* per-check tags, timeouts and failure status, draining, `wait_for_start`, and stale
   results failing both probes and the report
 - *(core)* the `sisa.health.status` and `sisa.health.check.duration` metrics
+- *(core)* `http::probe` and `http::report`: the probes and the report as plain HTTP answers, for
+  any web framework
 - *(axum)* `/livez`, `/readyz` and `/health` routes
 - *(postgres)* `PostgresCheck` on an sqlx pool
 - *(redis)* `RedisCheck` on any redis-rs async connection

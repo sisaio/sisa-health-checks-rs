@@ -46,6 +46,9 @@
 //! # }
 //! ```
 //!
+//! Any web framework can serve the probes and the report from the [`http`] module, which gives
+//! each answer as a status code, two headers and a body.
+//!
 //! Checks log through [`tracing`](https://docs.rs/tracing) when their status changes, and record
 //! their status and duration through the OpenTelemetry metrics API, as the [`metrics`] module
 //! lists.
@@ -56,6 +59,7 @@
 
 mod check;
 mod error;
+pub mod http;
 pub mod metrics;
 mod registry;
 mod report;

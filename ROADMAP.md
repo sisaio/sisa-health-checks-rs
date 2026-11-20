@@ -12,7 +12,8 @@ NATS.
 
 - Excluding checks per request, as the Kubernetes API server does with `?exclude=<name>`.
 - One path per check, such as `/readyz/postgres`, for debugging a single dependency.
-- Routes for other frameworks where users ask: actix-web, or a plain `tower` service.
+- Ready-made routes for other frameworks where users ask, as the axum crate is: actix-web, or a
+  plain `tower` service. Any framework can already serve the `http` module's answers.
 
 ## Later
 

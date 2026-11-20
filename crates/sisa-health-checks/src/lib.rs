@@ -38,6 +38,9 @@
 //! # }
 //! ```
 //!
+//! Without the `axum` feature, any web framework can serve the same answers from the [`http`]
+//! module: a status code, two headers and a body to copy into its own response.
+//!
 //! Your own checks implement [`HealthCheck`] with an `async fn`, or come from a closure through
 //! [`check_fn`]. Each part is also its own crate (`sisa-health-checks-core`, `-axum`,
 //! `-postgres`, `-redis`, `-nats`), whose docs cover the details.
@@ -51,7 +54,7 @@ pub use sisa_health_checks_core::{
     CheckContext, CheckReport, EventLoopCheck, FnCheck, HealthCheck, HealthError, HealthRegistry,
     HealthRegistryBuilder, HealthReport, HealthResult, HealthSettings, LIVE, NamedCheck,
     PollerHandle, Probe, ProbeLine, ProbeReport, ProvidesHealthChecks, READY, Status, check_fn,
-    metrics,
+    http, metrics,
 };
 
 #[cfg(feature = "axum")]
