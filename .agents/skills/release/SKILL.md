@@ -20,10 +20,10 @@ library crates share one version, one changelog at the root and one `v<version>`
   against the last published version, and adds a changelog section. release-plz opens it when
   any file a crate packages changed (`cargo package --list`), README included, so a PR whose
   commits are all `docs`, `ci` and the like has a version bump and no changelog entries: write
-  its section by hand, or the GitHub release has no notes.
+  its section by hand. Without a `## [<version>]` section, merging it releases nothing.
 - Merging the release PR changes the version in `Cargo.toml` on `main`, which starts the release
-  workflow: it tags `v<version>` and creates the GitHub release as a draft from the changelog
-  section. The publish job then waits for the CI
+  workflow: when `CHANGELOG.md` has that version's section, it tags `v<version>` and creates the
+  GitHub release as a draft from it. The publish job then waits for the CI
   run on that commit to pass and for the maintainer to approve the `release` environment. Once approved, it publishes the crates to
   crates.io, and the draft is published. Releases are immutable once published, so nothing may
   change one after that.
@@ -74,7 +74,7 @@ A pre-release lets a pilot depend on the next version before it is stable: `0.4.
   new PR.
 - The release workflow runs from its copy on `main`, so a change to it can't be tried in a PR.
 - If merging the release PR starts no workflow run, GitHub dropped the push. Push a changelog
-  fix to `main`: that tags and drafts the version, since its tag doesn't exist yet. Running the
+  fix to `main`: that tags and drafts the version, since it has a section and no tag yet. Running the
   workflow by hand doesn't help: a manual run only opens release PRs.
 - A publish that stopped halfway is finished by re-running the publish job: it skips the crates
   crates.io already has.
