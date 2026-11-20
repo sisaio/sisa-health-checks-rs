@@ -59,6 +59,7 @@ Report findings; don't push fixes unless asked.
 | Stale results fail the report | `a_stale_report_fails_and_says_why` |
 | The probe text follows the Kubernetes API server | `a_passing_probe_says_ok`, `verbose_lists_every_line`, `a_failing_probe_lists_only_its_failures` |
 | There is no `/healthz` | `there_is_no_healthz` |
+| gRPC `Check` answers as the probes do, and an unknown service is `NOT_FOUND` | `a_failing_ready_check_stops_readiness_not_liveness`, `an_unknown_service_is_not_found` |
 
 ## Gotchas
 

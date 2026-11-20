@@ -10,7 +10,7 @@ as in CI; a dependency change updates the lock file on purpose and commits it.
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-for f in "" axum postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done
+for f in "" axum grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features --locked
 cargo +1.94 check --workspace --all-targets --all-features --locked
 cargo test --workspace --all-features --locked
@@ -72,12 +72,14 @@ A change to any of these is breaking: it takes `!` in the commit and the `breaki
 - Every public Rust item that isn't `#[doc(hidden)]`: Rust has no visibility between crates, so
   a hidden item is `pub` only for the other crates here, and a release may change it.
 - The settings' field names, which config files use, and what each default is.
-- The routes (`/livez`, `/readyz`, `/health`), the probes' status codes and text, and the
-  report's JSON shape in [docs/01-architecture.md](docs/01-architecture.md#formats): Kubernetes,
-  load balancers and dashboards match on them.
+- The routes (`/livez`, `/readyz`, `/health`), the probes' status codes and text, the report's
+  JSON shape and the gRPC service names in
+  [docs/01-architecture.md](docs/01-architecture.md#formats): Kubernetes, load balancers and
+  dashboards match on them.
 - The metric names and attributes in [docs/02-observability.md](docs/02-observability.md).
-- The sqlx, redis-rs and async-nats types that reach the API through the re-exports: moving to a
-  release of one that breaks its own API is breaking here too.
+- The sqlx, redis-rs and async-nats types that reach the API through the re-exports, and
+  connectrpc's `Router`, which `grpc_routes` returns: moving to a release of one that breaks its
+  own API is breaking here too.
 
 What stays open: the settings struct and the error enum are `#[non_exhaustive]`, so a new setting
 or variant isn't breaking. Build settings from `default()` and set fields on it.
@@ -123,7 +125,7 @@ Every issue and pull request also gets labels from these groups, so anyone can f
 
 | Group | Labels | Rule |
 | --- | --- | --- |
-| Crate | `crate: sisa-health-checks`, `crate: core`, `crate: axum`, `crate: postgres`, `crate: redis`, `crate: nats`, `ci` | Every part the change touches. |
+| Crate | `crate: sisa-health-checks`, `crate: core`, `crate: axum`, `crate: grpc`, `crate: postgres`, `crate: redis`, `crate: nats`, `ci` | Every part the change touches. |
 | Other | `documentation`, `needs info`, `breaking`, `good first issue`, `help wanted` | When they apply. |
 | Automated | `dependencies`, `release` | Set by Dependabot and release-plz on their PRs. |
 
@@ -196,7 +198,7 @@ What was wrong and why this fixes it, wrapped at 72 columns.
 
 - The subject is `type(scope): summary`, at most 72 characters, with no period at the end.
   Write the summary in the imperative: "add", "fix", "keep".
-- The scope is optional. Use it when the change sits in one crate: `core`, `axum`,
+- The scope is optional. Use it when the change sits in one crate: `core`, `axum`, `grpc`,
   `postgres`, `redis`, `nats` or `facade`, or `deps` for a dependency bump.
 - Add `!` after the type or scope for a breaking change (`feat(core)!: ...`), and say how to
   migrate in the body.
