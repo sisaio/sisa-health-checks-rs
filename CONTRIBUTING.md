@@ -10,7 +10,7 @@ as in CI; a dependency change updates the lock file on purpose and commits it.
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-for f in "" axum grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done
+for f in "" http grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features --locked
 cargo +1.94 check --workspace --all-targets --all-features --locked
 cargo test --workspace --all-features --locked
@@ -125,7 +125,7 @@ Every issue and pull request also gets labels from these groups, so anyone can f
 
 | Group | Labels | Rule |
 | --- | --- | --- |
-| Crate | `crate: sisa-health-checks`, `crate: core`, `crate: axum`, `crate: grpc`, `crate: postgres`, `crate: redis`, `crate: nats`, `ci` | Every part the change touches. |
+| Crate | `crate: sisa-health-checks`, `crate: core`, `crate: http`, `crate: grpc`, `crate: postgres`, `crate: redis`, `crate: nats`, `ci` | Every part the change touches. |
 | Other | `documentation`, `needs info`, `breaking`, `good first issue`, `help wanted` | When they apply. |
 | Automated | `dependencies`, `release` | Set by Dependabot and release-plz on their PRs. |
 
@@ -198,7 +198,7 @@ What was wrong and why this fixes it, wrapped at 72 columns.
 
 - The subject is `type(scope): summary`, at most 72 characters, with no period at the end.
   Write the summary in the imperative: "add", "fix", "keep".
-- The scope is optional. Use it when the change sits in one crate: `core`, `axum`, `grpc`,
+- The scope is optional. Use it when the change sits in one crate: `core`, `http`, `grpc`,
   `postgres`, `redis`, `nats` or `facade`, or `deps` for a dependency bump.
 - Add `!` after the type or scope for a breaking change (`feat(core)!: ...`), and say how to
   migrate in the body.

@@ -24,4 +24,4 @@ changelog_update = true
 changelog_path = "./CHANGELOG.md"
 # The tag release.yml makes, which the changelog's compare links point at.
 git_tag_name = "v{{ version }}"
-changelog_include = ["sisa-health-checks", "sisa-health-checks-axum", "sisa-health-checks-grpc", "sisa-health-checks-postgres", "sisa-health-checks-redis", "sisa-health-checks-nats"]
+changelog_include = ["sisa-health-checks", "sisa-health-checks-http", "sisa-health-checks-grpc", "sisa-health-checks-postgres", "sisa-health-checks-redis", "sisa-health-checks-nats"]

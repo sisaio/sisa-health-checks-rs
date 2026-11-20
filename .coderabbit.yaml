@@ -14,8 +14,8 @@ reviews:
   labeling_instructions:
     - label: "crate: core"
       instructions: The PR changes crates/core.
-    - label: "crate: axum"
-      instructions: The PR changes crates/axum.
+    - label: "crate: http"
+      instructions: The PR changes crates/http.
     - label: "crate: grpc"
       instructions: The PR changes crates/grpc.
     - label: "crate: postgres"
@@ -76,7 +76,7 @@ reviews:
         Conventional Commits as CONTRIBUTING.md says: `type(scope): summary`, at most 72
         characters, no period at the end, the summary in the imperative. The type is one of feat,
         fix, perf, refactor, docs, test, build, ci, chore or revert. The scope is optional:
-        core, axum, grpc, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
+        core, http, grpc, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
 
   # Commits on a PR come from its author only, so CodeRabbit doesn't write docstrings or tests.
   finishing_touches:
