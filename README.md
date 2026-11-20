@@ -4,7 +4,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sisaio/sisa-health-checks-rs/badge)](https://scorecard.dev/viewer/?uri=github.com/sisaio/sisa-health-checks-rs)
 [![crates.io](https://img.shields.io/crates/v/sisa-health-checks.svg)](https://crates.io/crates/sisa-health-checks)
 [![docs.rs](https://img.shields.io/docsrs/sisa-health-checks)](https://docs.rs/sisa-health-checks)
-[![MSRV](https://img.shields.io/badge/MSRV-1.89-blue)](https://github.com/sisaio/sisa-health-checks-rs/blob/main/Cargo.toml)
+[![MSRV](https://img.shields.io/badge/MSRV-1.94-blue)](https://github.com/sisaio/sisa-health-checks-rs/blob/main/Cargo.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/sisaio/sisa-health-checks-rs/blob/main/LICENSE)
 
 Kubernetes-style health checks for Rust services: a registry that runs checks in the background,
@@ -134,4 +134,4 @@ lists them and what to alert on.
 - [Security](https://github.com/sisaio/sisa-health-checks-rs/blob/main/SECURITY.md): reporting
   a vulnerability.
 
-Rust 1.89 or newer. MIT licensed.
+Rust 1.94 or newer. MIT licensed.
