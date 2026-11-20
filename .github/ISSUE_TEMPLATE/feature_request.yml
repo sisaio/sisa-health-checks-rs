@@ -15,7 +15,7 @@ body:
       options:
         - sisa-health-checks
         - sisa-health-checks-core
-        - sisa-health-checks-axum
+        - sisa-health-checks-http
         - sisa-health-checks-grpc
         - sisa-health-checks-postgres
         - sisa-health-checks-redis

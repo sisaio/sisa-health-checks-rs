@@ -19,7 +19,7 @@ labels=(
   "documentation|0075ca|Docs only: doc comments, docs/, README."
   "crate: sisa-health-checks|1d76db|sisa-health-checks: the facade crate, its features and re-exports."
   "crate: core|1d76db|sisa-health-checks-core: the check contract, registry, probes, report, metrics."
-  "crate: axum|1d76db|sisa-health-checks-axum: the /livez, /readyz and /health routes."
+  "crate: http|1d76db|sisa-health-checks-http: the /livez, /readyz and /health answers."
   "crate: grpc|1d76db|sisa-health-checks-grpc: the grpc.health.v1.Health service, on connectrpc."
   "crate: postgres|1d76db|sisa-health-checks-postgres: the PostgreSQL check."
   "crate: redis|1d76db|sisa-health-checks-redis: the Redis check."
