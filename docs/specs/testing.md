@@ -14,7 +14,7 @@ wait until it answers. Never published, so it has no public API to keep.
 | `Server::postgres()` | A fresh PostgreSQL server for one test, user and password `postgres`, removed when the value drops |
 | `Server::redis()` | The same for a Redis server |
 | `Server::nats()` | The same for a NATS server |
-| `eventually` | Calls an attempt until it succeeds, for a server that is still starting; panics with the last error after a minute |
+| `eventually` | Calls an attempt until it succeeds, for a server that is still starting; panics with the last error after 120 attempts, half a second apart. An attempt has no deadline of its own, so one that never returns waits forever |
 
 A server hands out its `port`, and can be stopped for a test that takes the server away.
 

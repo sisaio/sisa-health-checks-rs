@@ -15,8 +15,10 @@ the `sqlx` crate it is built on, re-exported.
 
 The check runs `SELECT 1` on a connection from the pool, so it fails when the pool can't reach
 the server or has no connection to spare. A failure is unhealthy with the description
-`SELECT 1 failed`; the error goes to the logs. The result carries the details `pool_size` and
-`pool_idle`, so a pool that runs out shows in the report before requests time out.
+`SELECT 1 failed`; the error is logged when the check's status gets worse, not on every failed
+run. A result the check returns carries the details `pool_size` and `pool_idle`, so a pool that
+runs out shows in the report. A check the registry stops at its timeout has no details: its
+result is only `timed out after <n> ms`.
 
 ## Guarantees and limits
 

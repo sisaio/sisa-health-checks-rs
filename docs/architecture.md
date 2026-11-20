@@ -49,8 +49,10 @@ into its own response.
 - A dead or stuck poller fails both probes and the report within 3 polls plus the longest
   timeout.
 - The poller never starts a poll before the previous one ends, so it never runs a check twice at once.
-- Results are as old as one poll interval: an outage shows up to `poll_interval_ms` late. Lower
-  the interval, not the probe period, to see it sooner.
+- Results are as old as one poll interval plus the time the poll took. A poll stores nothing
+  until its slowest check ends, so an outage shows up to `poll_interval_ms` plus the longest
+  check timeout late. Lower the interval and the timeouts, not the probe period, to see it
+  sooner.
 - The registry doesn't debounce: one failed run fails the probe. Use the probe's
   `failureThreshold` in Kubernetes to wait for several.
 

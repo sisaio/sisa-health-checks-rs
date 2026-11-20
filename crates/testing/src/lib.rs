@@ -90,7 +90,8 @@ impl Server {
 }
 
 /// Calls `attempt` until it succeeds, for a server that is still starting; panics with the last
-/// error after a minute.
+/// error after 120 attempts, half a second apart. An attempt has no deadline of its own, so one
+/// that never returns waits forever.
 pub async fn eventually<T, E, F>(mut attempt: F) -> T
 where
     E: Debug,

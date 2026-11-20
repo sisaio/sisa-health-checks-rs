@@ -14,8 +14,9 @@ Dragonfly and Garnet, and on a cluster connection too. It opens no connection of
 
 ## Behaviour
 
-The check sends `PING`. A failure is unhealthy with the description `PING failed`, and the error
-goes to the logs; any answer other than the expected one is unhealthy with
+The check sends `PING`. A failure is unhealthy with the description `PING failed`. The error is
+logged when the check's status gets worse; a repeated failure while the status stays unhealthy
+logs nothing. Any answer other than the expected one is unhealthy with
 `PING answered <answer>`.
 
 ## Guarantees and limits

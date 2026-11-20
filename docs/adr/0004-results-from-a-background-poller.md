@@ -19,8 +19,9 @@ check can also find a dependency working but impaired.
 ## Consequences
 
 - Probe traffic and dependency load are independent, and a probe answers in microseconds.
-- Results are as old as one poll interval, and a dead poller must not leave the last good answer
-  in place: stale results fail both probes and the report.
+- Results are as old as one poll interval plus the time the poll took: a poll stores nothing
+  until its slowest check ends, which can take that check's whole timeout. A dead poller must not
+  leave the last good answer in place: stale results fail both probes and the report.
 - A degraded dependency is worth seeing, not worth losing traffic over: it shows in the report,
   the logs and the metrics.
 
