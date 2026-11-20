@@ -43,8 +43,8 @@ docker pull mirror.gcr.io/library/redis:8-alpine
 docker tag mirror.gcr.io/library/redis:8-alpine redis:8-alpine
 ```
 
-Coverage comes from [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov); CI measures it on
-each push to main.
+Coverage comes from [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov), run by hand; CI
+doesn't measure it.
 
 ```sh
 cargo llvm-cov --workspace --all-features --ignore-filename-regex 'crates/testing/'

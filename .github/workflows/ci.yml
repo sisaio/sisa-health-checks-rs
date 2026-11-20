@@ -1,6 +1,6 @@
 # Formatting, lints, the MSRV build, the dependency policy, breaking API changes, the Markdown
-# links, the tests, which start PostgreSQL, Redis and NATS in Docker, and coverage on main. PRs and pushes to main that
-# change no Rust inputs skip the Rust jobs; `ci` sums them up for the ruleset.
+# links, and the tests, which start PostgreSQL, Redis and NATS in Docker. PRs and pushes to main
+# that change no Rust inputs skip the Rust jobs; `ci` sums them up for the ruleset.
 name: CI
 
 on:
@@ -23,21 +23,14 @@ env:
 jobs:
   # Whether the Rust jobs need to run, and the commit check every PR needs. A PR is diffed against
   # its base and a push to main against the commit before it, so a docs-only merge skips them too.
-  # A merge with the same files as its PR's head, which passed CI, skips them as well; coverage
-  # still runs on every code change, for the badge. `semver` runs only when a published crate's
-  # source or manifest, the lock file, the toolchain or this workflow changes: tests and examples
-  # have no public API.
+  # `semver` runs only when a published crate's source or manifest, the lock file, the toolchain
+  # or this workflow changes: tests and examples have no public API.
   changes:
     name: changes
     runs-on: ubuntu-26.04-arm
     timeout-minutes: 5
-    permissions:
-      actions: read
-      contents: read
-      pull-requests: read
     outputs:
       code: ${{ steps.diff.outputs.code }}
-      coverage: ${{ steps.diff.outputs.coverage }}
       api: ${{ steps.diff.outputs.api }}
     env:
       BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -46,20 +39,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # The whole history, so both checks can read the pushed commits.
+          # The whole history, so both steps can read the pushed commits.
           fetch-depth: 0
 
       - name: Look for code changes
         id: diff
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           code=$(.github/scripts/code-changed.sh "$BASE" "$HEAD")
-          echo "coverage=$code" >> "$GITHUB_OUTPUT"
-          if [ "$code" = true ] && [ "$GITHUB_EVENT_NAME" = push ] \
-            && [ "$(.github/scripts/pr-tested.sh "$BASE" "$HEAD")" = true ]; then
-            code=false
-          fi
           echo "code=$code" >> "$GITHUB_OUTPUT"
           api=false
           if git diff --name-only "$BASE...$HEAD" | grep -qE \
@@ -270,8 +256,7 @@ jobs:
       - name: Run all tests
         run: cargo test --workspace --all-features --locked
 
-  # The check the main ruleset requires: skipped jobs pass, failed or cancelled ones fail. A skipped
-  # matrix job reports no `test (...)` check, so those can't be required directly.
+  # The check the main ruleset requires: skipped jobs pass, failed or cancelled ones fail.
   ci:
     name: ci
     if: always()
@@ -282,46 +267,3 @@ jobs:
       - name: Check the results
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1
-
-  # Line coverage for the README badge, on main only to keep Actions minutes down. The test helpers
-  # crate is left out.
-  coverage:
-    name: coverage
-    needs: changes
-    if: github.event_name == 'push' && needs.changes.outputs.coverage == 'true'
-    runs-on: ubuntu-26.04-arm
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Install the pinned toolchain
-        run: rustup toolchain install && rustup component add llvm-tools-preview
-
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
-        with:
-          tool: cargo-llvm-cov
-
-      - name: Pull the server images
-        run: |
-          docker pull postgres:17-alpine
-          docker pull redis:8-alpine
-          docker pull nats:2-alpine
-
-      - name: Measure coverage
-        run: cargo llvm-cov --workspace --all-features --locked --ignore-filename-regex 'crates/testing/' --lcov --output-path lcov.info
-
-      # A Codecov outage only leaves the badge stale; it doesn't turn main red, which would hold up
-      # a release waiting on this run.
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          files: lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
