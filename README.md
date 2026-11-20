@@ -15,7 +15,7 @@ report, the gRPC health service, and ready-made checks for PostgreSQL, Redis and
 
 | Feature | Adds |
 | --- | --- |
-| (always) | `HealthRegistry`, the `HealthCheck` trait, `check_fn` for closures, `EventLoopCheck`, OpenTelemetry metrics |
+| (always) | `HealthRegistry`, the `HealthCheck` trait, `check_fn` for closures, `EventLoopCheck`, the `http` answers for any web framework, OpenTelemetry metrics |
 | `axum` | `probe_routes` (`/livez`, `/readyz`) and `report_routes` (`/health`) |
 | `grpc` | `grpc_routes`, the `grpc.health.v1.Health` service for gRPC and Connect clients, on connectrpc |
 | `postgres` | `PostgresCheck`, `SELECT 1` on an sqlx pool |
@@ -128,6 +128,40 @@ Each run records `sisa.health.status` (1, 0.5 or 0) and `sisa.health.check.durat
 through the OpenTelemetry metrics API, and each change of status is one log line.
 [docs/02-observability.md](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/02-observability.md)
 lists them and what to alert on.
+
+## Other web frameworks
+
+The `axum` feature is a router around the `http` module, which is always there and knows no
+framework: `http::probe` and `http::report` give each answer as a status code, a content type, a
+`Cache-Control` value and a body. Copy them into your framework's response. In actix-web:
+
+```rust,ignore
+use actix_web::{App, HttpRequest, HttpResponse, http::StatusCode, web};
+use sisa_health_checks::{HealthRegistry, Probe, http::{self, HttpAnswer}};
+
+fn respond(answer: HttpAnswer) -> HttpResponse {
+    HttpResponse::build(StatusCode::from_u16(answer.status).unwrap_or(StatusCode::SERVICE_UNAVAILABLE))
+        .content_type(answer.content_type)
+        .insert_header(("cache-control", answer.cache_control))
+        .body(answer.body)
+}
+
+async fn readyz(registry: web::Data<HealthRegistry>, request: HttpRequest) -> HttpResponse {
+    respond(http::probe(&registry, Probe::Ready, Some(request.query_string())))
+}
+
+async fn health(registry: web::Data<HealthRegistry>) -> HttpResponse {
+    respond(http::report(&registry))
+}
+
+App::new()
+    .app_data(web::Data::new(registry.clone()))
+    .route(http::READY_PATH, web::get().to(readyz))
+    .route(http::REPORT_PATH, web::get().to(health));
+```
+
+`/livez` is the same handler with `Probe::Live`. Rocket, hyper and the others differ only in
+`respond`.
 
 ## More
 

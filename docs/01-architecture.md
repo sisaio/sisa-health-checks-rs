@@ -19,7 +19,7 @@ flowchart LR
 
 | Crate | Holds | Depends on |
 | --- | --- | --- |
-| `sisa-health-checks-core` | The registry, the `HealthCheck` trait, results, probes, the report, `EventLoopCheck`, metrics | tokio, futures-util, serde, opentelemetry, tracing |
+| `sisa-health-checks-core` | The registry, the `HealthCheck` trait, results, probes, the report, the `http` answers, `EventLoopCheck`, metrics | tokio, futures-util, serde, opentelemetry, tracing |
 | `sisa-health-checks-axum` | `probe_routes` and `report_routes` | core, axum |
 | `sisa-health-checks-grpc` | `grpc_routes`, the `grpc.health.v1.Health` service | core, connectrpc, connectrpc-health |
 | `sisa-health-checks-postgres` | `PostgresCheck` | core, sqlx |
@@ -29,7 +29,9 @@ flowchart LR
 | `sisa-health-checks-testing` | Docker servers for the integration tests; not published | testcontainers |
 
 The core knows no web framework and no client library, so a route crate or a check crate can be
-added without touching it.
+added without touching it. Its `http` module gives each answer as plain data, a status code, two
+headers and a body, which a route crate, or an application on any framework, copies into its own
+response.
 
 ## How it works
 
@@ -102,6 +104,7 @@ pass a shorter deadline to its client.
 | `/livez` and `/readyz`, no `/healthz` | Kubernetes deprecated `/healthz` in v1.16 for these two; one name per meaning keeps probes unambiguous. |
 | No `/startupz` | The startup probe asks the same question as liveness, only with more patience; point it at `/livez`. |
 | 200 to pass, 503 to fail | The kubelet passes 200–399; 503 is what load balancers and the API server use for not ready. |
+| HTTP answers as plain data, not `http` crate types | Frameworks don't share one response type: axum, warp and poem are on `http` 1, actix-web 4 and Rocket 0.5 on `http` 0.2. A number and three strings fit them all, with no dependency. |
 | Plain text in the API server's format, `?verbose` for every line | Matches what operators already read from `kubectl get --raw /readyz?verbose`. |
 | The report in `application/health+json` | The closest thing to a standard for a health document. It is an expired IETF draft (draft-inadarei-api-health-check), not an RFC, and is followed as such. |
 | Results from a background poller, not per request | Probe traffic and dependency load are independent; a probe answers in microseconds. |
