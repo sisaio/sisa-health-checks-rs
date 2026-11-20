@@ -7,30 +7,45 @@ reviews:
   # Short walkthroughs: one maintainer reviews, so no reviewer suggestions, and no poem.
   poem: false
   suggested_reviewers: false
-  # Suggest labels, never apply them: a PR carries its crate labels and, when it breaks the public
-  # API or a data format, `breaking`, which the semver check reads.
+  # Suggest labels, never apply them: a PR carries its `type:` label, the `area:` label of each
+  # part it touches and, when it breaks the public API or a data format, `breaking`, which the
+  # semver check reads. The names come from .github/labels.yml.
   suggested_labels: true
   auto_apply_labels: false
   labeling_instructions:
-    - label: "crate: core"
+    - label: "type:feature"
+      instructions: The PR title's type is feat.
+    - label: "type:bug"
+      instructions: The PR title's type is fix or revert.
+    - label: "type:security"
+      instructions: The PR title's type is security.
+    - label: "type:perf"
+      instructions: The PR title's type is perf.
+    - label: "type:docs"
+      instructions: The PR title's type is docs.
+    - label: "type:chore"
+      instructions: The PR title's type is refactor, test, build, ci or chore, and it isn't a dependency update.
+    - label: "area:core"
       instructions: The PR changes crates/core.
-    - label: "crate: http"
+    - label: "area:http"
       instructions: The PR changes crates/http.
-    - label: "crate: grpc"
+    - label: "area:grpc"
       instructions: The PR changes crates/grpc.
-    - label: "crate: postgres"
+    - label: "area:postgres"
       instructions: The PR changes crates/postgres.
-    - label: "crate: redis"
+    - label: "area:redis"
       instructions: The PR changes crates/redis.
-    - label: "crate: nats"
+    - label: "area:nats"
       instructions: The PR changes crates/nats.
-    - label: "crate: sisa-health-checks"
+    - label: "area:testing"
+      instructions: The PR changes crates/testing.
+    - label: "area:facade"
       instructions: The PR changes crates/sisa-health-checks, the facade crate.
-    - label: ci
+    - label: "area:ci"
       instructions: The PR changes .github/workflows, .github/scripts or .githooks.
     - label: breaking
       instructions: >-
-        The PR breaks what CONTRIBUTING.md's "What the public API is" lists: it removes or
+        The PR breaks what CONTRIBUTING.md's "Public API and breaking changes" lists: it removes or
         changes a public item that isn't `#[doc(hidden)]`, a settings field name or default, a
         metric name or attribute, a route path, the probe text, the report's JSON shape or a
         gRPC service name, or moves to a release of sqlx, redis-rs, async-nats or connectrpc that
@@ -51,15 +66,16 @@ reviews:
   path_instructions:
     - path: "crates/**/*.rs"
       instructions: >-
-        Check the rules in docs/01-architecture.md: probes never run a check; a liveness check
+        Check the rules in docs/architecture.md and the crate's spec in docs/specs: probes never run a check; a liveness check
         never touches a dependency; responses never carry a result's error; no new dependency in
         a library crate. Look for a lock held across `.await`, a check without a timeout path,
         and an error dropped without a log. Don't ask for doc comments on private items.
     - path: "docs/**/*.md"
       instructions: >-
         Diagrams are Mermaid, and tables beat long lists. Every relative link and `#anchor` must
-        resolve. A change to a route, the probe text or the report's JSON must update the
-        formats in docs/01-architecture.md.
+        resolve. A change to a route, the probe text or the report's JSON must update
+        docs/formats.md. A change to what a crate does must update its spec in docs/specs. An
+        accepted ADR in docs/adr is never rewritten: a new one supersedes it.
     - path: ".github/workflows/*.yml"
       instructions: >-
         Every action is pinned to a full commit SHA with its version in a comment. Workflow names
@@ -74,9 +90,10 @@ reviews:
       mode: warning
       requirements: >-
         Conventional Commits as CONTRIBUTING.md says: `type(scope): summary`, at most 72
-        characters, no period at the end, the summary in the imperative. The type is one of feat,
-        fix, perf, refactor, docs, test, build, ci, chore or revert. The scope is optional:
-        core, http, grpc, postgres, redis, nats, facade or deps. A breaking change adds `!` after the type or scope.
+        characters, no period at the end, the summary in the imperative and starting lowercase.
+        The type is one of feat, fix, perf, refactor, docs, test, build, ci, chore, revert or
+        security. The scope is optional: core, http, grpc, postgres, redis, nats, testing,
+        facade, deps, docs or release. A breaking change adds `!` after the type or scope.
 
   # Commits on a PR come from its author only, so CodeRabbit doesn't write docstrings or tests.
   finishing_touches:
@@ -104,5 +121,7 @@ knowledge_base:
       - CONTRIBUTING.md
       - files: .agents/skills/review-changes/SKILL.md
         applyTo: "**"
-      - files: docs/01-architecture.md
+      - files: docs/architecture.md
+        applyTo: "**"
+      - files: docs/adr/README.md
         applyTo: "**"

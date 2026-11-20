@@ -2,7 +2,7 @@
 # Patch and minor updates are grouped per ecosystem, and major updates stay separate.
 # Dependabot doesn't update the server images in ci.yml and crates/testing; `postgres:17-alpine`,
 # `redis:8-alpine` and `nats:2-alpine` follow their major version by themselves.
-# Commit titles start with `build(deps)`, and PRs carry only the `dependencies` label, not
+# Commit titles start with `build(deps)`, and PRs carry only the `type:deps` label, not
 # Dependabot's per-ecosystem ones.
 version: 2
 updates:
@@ -13,7 +13,7 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: build(deps)
-    labels: [dependencies]
+    labels: ["type:deps"]
     groups:
       cargo-minor-and-patch:
         update-types: [minor, patch]
@@ -25,7 +25,7 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: build(deps)
-    labels: [dependencies]
+    labels: ["type:deps"]
     groups:
       actions-minor-and-patch:
         update-types: [minor, patch]
