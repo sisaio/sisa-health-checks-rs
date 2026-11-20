@@ -7,7 +7,11 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
-ignore = []
+ignore = [
+  # astral-tokio-tar is unmaintained. Only the tests reach it, through testcontainers. Drop this
+  # once testcontainers moves off it.
+  { id = "RUSTSEC-2026-0440", reason = "test-only, through testcontainers" },
+]
 
 [licenses]
 version = 2
