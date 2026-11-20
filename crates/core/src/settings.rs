@@ -31,8 +31,9 @@ pub struct HealthSettings {
     /// results, so probe traffic doesn't add check runs.
     pub poll_interval_ms: u64,
 
-    /// How long a check may run unless it sets its own timeout: 2 seconds by default. Keep it
-    /// under the probe's `timeoutSeconds`.
+    /// How long a check may run unless it sets its own timeout: 2 seconds by default. A probe
+    /// never waits on a check, so the probe's `timeoutSeconds` doesn't limit it. A poll takes as
+    /// long as its slowest check, so a long timeout makes every result late.
     pub default_timeout_ms: u64,
 }
 

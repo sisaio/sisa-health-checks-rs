@@ -4,7 +4,7 @@
 //! Applications depend on `sisa-health-checks`, which re-exports this crate's types, or on this
 //! crate and the crates of the checks and the framework they use.
 //!
-//! A registry holds named checks. Each check is tagged with the probes that run it: [`LIVE`] for
+//! A registry holds named checks. Each check is tagged with the probes it counts for: [`LIVE`] for
 //! `/livez`, which asks whether the process should be restarted and so checks only the process
 //! itself, and [`READY`] for `/readyz`, which asks whether the pod should get traffic and so
 //! checks the dependencies it can't serve without. A check is tagged [`READY`] unless given other

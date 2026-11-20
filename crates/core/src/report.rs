@@ -13,15 +13,15 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum Probe {
-    /// `/livez`: whether the process should be restarted. Runs the checks tagged [`LIVE`].
+    /// `/livez`: whether the process should be restarted. Reads the checks tagged [`LIVE`].
     Live,
-    /// `/readyz`: whether the pod should get traffic. Runs the checks tagged [`READY`], and fails
+    /// `/readyz`: whether the pod should get traffic. Reads the checks tagged [`READY`], and fails
     /// while the registry drains or before it is started.
     Ready,
 }
 
 impl Probe {
-    /// The tag of the checks this probe runs.
+    /// The tag of the checks this probe reads.
     pub fn tag(self) -> &'static str {
         match self {
             Self::Live => LIVE,

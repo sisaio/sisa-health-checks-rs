@@ -1,6 +1,6 @@
 //! A NATS check for Sisa Health Checks, on the application's own
-//! [async-nats](https://docs.rs/async-nats) client: the connection must be up, and a flush must
-//! reach the server and come back.
+//! [async-nats](https://docs.rs/async-nats) client: the connection must be up, and a flush of the
+//! client's pending writes must succeed.
 //!
 //! ```no_run
 //! use sisa_health_checks_core::HealthRegistry;
@@ -16,6 +16,11 @@
 //! # }
 //! ```
 //!
+//! The flush shows that the client's connection task is alive and its socket still takes writes,
+//! not that the server answered: async-nats has no ping an application can send. A connection
+//! that died without closing is found by the client's own pings, and fails this check once the
+//! client reports it as disconnected.
+//!
 //! Tag it `ready` when the pod consumes from NATS. When it only publishes through an outbox, the
 //! outbox holds messages while NATS is down, so give it `failure(Status::Degraded)` instead.
 
@@ -29,8 +34,8 @@ pub use async_nats;
 use async_nats::{Client, connection::State};
 use sisa_health_checks_core::{CheckContext, HealthCheck, HealthResult};
 
-/// Checks a NATS server through an async-nats client: the connection must be up and a flush must
-/// come back.
+/// Checks a NATS server through an async-nats client: the connection must be up and a flush of
+/// its pending writes must succeed.
 #[derive(Clone)]
 pub struct NatsCheck {
     client: Client,
@@ -51,7 +56,7 @@ impl fmt::Debug for NatsCheck {
     }
 }
 
-// Reads the connection state, then flushes to prove the server answers.
+// Reads the connection state, then flushes the client's pending writes.
 impl HealthCheck for NatsCheck {
     fn check(&self, _context: &CheckContext) -> impl Future<Output = HealthResult> + Send {
         async move {

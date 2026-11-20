@@ -11,7 +11,7 @@
 //! | `redis` | `RedisCheck`, on any redis-rs async connection, and the `redis` crate |
 //! | `nats` | `NatsCheck`, on an async-nats client, and the `async_nats` crate |
 //!
-//! A check is tagged with the probes that run it: `live` for `/livez`, which must only check the
+//! A check is tagged with the probes it counts for: `live` for `/livez`, which must only check the
 //! process itself, and `ready` for `/readyz`, which checks the dependencies the pod can't serve
 //! without. Checks are tagged `ready` unless given other tags. A check of an optional dependency
 //! fails as `Degraded`, so it is reported without taking the pod out of rotation.
