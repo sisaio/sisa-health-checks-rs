@@ -709,6 +709,23 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
+    async fn the_stale_limit_counts_the_longest_timeout() {
+        let health = registry(
+            HealthRegistry::builder()
+                .check_fn("slow", async || HealthResult::healthy())
+                .timeout(Duration::from_secs(10)),
+        );
+
+        health.run().await;
+        // 3 intervals of 5 s, plus the 10 s a poll may take.
+        tokio::time::advance(Duration::from_secs(20)).await;
+        assert!(health.probe(Probe::Ready).passed());
+
+        tokio::time::advance(Duration::from_secs(6)).await;
+        assert!(!health.probe(Probe::Ready).passed());
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn the_poller_keeps_the_results_fresh() {
         let runs = Arc::new(AtomicUsize::new(0));
         let counted = runs.clone();
@@ -722,6 +739,58 @@ mod tests {
 
         assert!(runs.load(Ordering::Relaxed) >= 12);
         assert!(health.probe(Probe::Ready).passed());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn the_poller_stops_when_its_handle_drops() {
+        let runs = Arc::new(AtomicUsize::new(0));
+        let counted = runs.clone();
+        let health = registry(HealthRegistry::builder().check_fn("counted", move || {
+            counted.fetch_add(1, Ordering::Relaxed);
+            async { HealthResult::healthy() }
+        }));
+
+        let poller = health.spawn();
+        tokio::time::sleep(Duration::from_secs(12)).await;
+        drop(poller);
+
+        let before = runs.load(Ordering::Relaxed);
+        tokio::time::sleep(Duration::from_secs(60)).await;
+
+        assert_eq!(before, 3);
+        assert_eq!(runs.load(Ordering::Relaxed), before);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn a_response_never_carries_the_error() {
+        let health = registry(HealthRegistry::builder().check_fn("postgres", async || {
+            let error = std::io::Error::other("no route to db-1.internal");
+
+            HealthResult::unhealthy("SELECT 1 failed").with_error(&error)
+        }));
+
+        health.run().await;
+
+        let probe = health.probe(Probe::Ready).to_text(true);
+        let report = health.report().to_json().to_string();
+
+        assert!(probe.contains("SELECT 1 failed"));
+        assert!(!probe.contains("db-1.internal"));
+        assert!(!report.contains("db-1.internal"));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn the_report_says_when_it_drains() {
+        let health = registry(HealthRegistry::builder());
+
+        assert_eq!(health.report().to_json().get("notes"), None);
+
+        health.begin_draining();
+
+        assert_eq!(
+            health.report().to_json()["notes"][0],
+            "draining: /readyz fails"
+        );
     }
 
     #[tokio::test(start_paused = true)]
@@ -769,5 +838,20 @@ mod tests {
 
             assert_eq!(built.err(), Some(HealthError::InvalidName(name.into())));
         }
+    }
+
+    #[test]
+    fn a_failure_of_healthy_and_a_zero_timeout_are_rejected() {
+        let hidden = HealthRegistry::builder()
+            .check_fn("cache", async || HealthResult::healthy())
+            .failure(Status::Healthy)
+            .build();
+        let instant = HealthRegistry::builder()
+            .check_fn("cache", async || HealthResult::healthy())
+            .timeout(Duration::ZERO)
+            .build();
+
+        assert!(matches!(hidden, Err(HealthError::InvalidCheck { .. })));
+        assert!(matches!(instant, Err(HealthError::InvalidCheck { .. })));
     }
 }

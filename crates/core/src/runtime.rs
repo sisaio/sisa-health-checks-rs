@@ -92,4 +92,18 @@ mod tests {
 
         assert_eq!(result.status(), Status::Healthy);
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn a_late_wake_is_unhealthy() {
+        let context = CheckContext::new(Arc::from("event-loop"), Duration::from_secs(1));
+        let check = EventLoopCheck::default();
+        let (result, ()) = tokio::join!(
+            check.check(&context),
+            // Once the check has started its nap, the clock jumps well past it, as it would for a
+            // task that waits behind a blocked thread.
+            tokio::time::advance(Duration::from_millis(500)),
+        );
+
+        assert_eq!(result.status(), Status::Unhealthy);
+    }
 }
