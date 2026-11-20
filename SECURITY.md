@@ -1,5 +1,7 @@
 # Security
 
+## Reporting
+
 Report a vulnerability privately through
 [GitHub security advisories](https://github.com/sisaio/sisa-health-checks-rs/security/advisories/new),
 not in a public issue.
@@ -33,5 +35,6 @@ a packaging of the tagged source, and a Sigstore bundle with their SLSA build pr
 the release workflow. Check a downloaded crate with the GitHub CLI:
 
 ```sh
-gh attestation verify sisa-health-checks-<version>.crate --repo sisaio/sisa-health-checks-rs
+gh attestation verify sisa-health-checks-<version>.crate --repo sisaio/sisa-health-checks-rs \
+    --signer-workflow sisaio/sisa-health-checks-rs/.github/workflows/release.yml
 ```
