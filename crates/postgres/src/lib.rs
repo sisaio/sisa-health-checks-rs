@@ -16,9 +16,10 @@
 //! # }
 //! ```
 //!
-//! The report shows the pool's size and idle connections, so a pool that runs out shows there
-//! before requests time out. The check waits for a connection like any query does, so keep the
-//! pool's acquire timeout under the check's timeout to see the pool's own error.
+//! The report shows the pool's size and idle connections, so a pool that runs out shows there.
+//! The check waits for a connection like any query does, and a check the registry stops at its
+//! timeout reports no pool details, so keep the pool's acquire timeout under the check's timeout
+//! to see the pool's own error and the details.
 
 use sisa_health_checks_core::{CheckContext, HealthCheck, HealthResult};
 pub use sqlx;

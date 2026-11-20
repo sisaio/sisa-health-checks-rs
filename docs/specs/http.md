@@ -22,8 +22,8 @@ an application copies each answer into its own response
 
 | Request | Call | Answers | Body |
 | --- | --- | --- | --- |
-| `GET /livez` | `probe` with `Probe::Live` | 200 unless a check tagged `live` fails | `ok`, or the failing lines |
-| `GET /readyz` | `probe` with `Probe::Ready` | 200 unless a check tagged `ready` fails, the registry drains, or it isn't started | `ok`, or the failing lines |
+| `GET /livez` | `probe` with `Probe::Live` | 200 unless a check tagged `live` fails or the results are stale | `ok`, or the failing lines |
+| `GET /readyz` | `probe` with `Probe::Ready` | 200 unless a check tagged `ready` fails, the results are stale, the registry drains, or it isn't started | `ok`, or the failing lines |
 | `GET /livez?verbose`, `GET /readyz?verbose` | `probe` with the query | The same status | Every line, as `[+]postgres ok` |
 | `GET /health` | `report` | 503 when any check is unhealthy or the results are stale, else 200 | `application/health+json` with every check |
 

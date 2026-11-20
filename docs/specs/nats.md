@@ -15,7 +15,8 @@ the `async_nats` crate, re-exported.
 
 The connection must be up, and a flush of the client's pending writes must succeed. A client
 that isn't connected is unhealthy with the description `connection is <state>`; a flush that
-fails is unhealthy with `flush failed`, and the error goes to the logs.
+fails is unhealthy with `flush failed`. The error is logged when the check's status gets worse,
+not on every failed run.
 
 ## Guarantees and limits
 
