@@ -4,7 +4,7 @@ members = ["crates/*", "examples/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Sang Au <auvansang@outlook.com>"]
 edition = "2024"
 rust-version = "1.94"
@@ -22,13 +22,13 @@ min_ident_chars = "warn"
 
 [workspace.dependencies]
 # The library crates, at the coordinated version.
-sisa-health-checks = { path = "crates/sisa-health-checks", version = "0.1.0" }
-sisa-health-checks-core = { path = "crates/core", version = "0.1.0" }
-sisa-health-checks-http = { path = "crates/http", version = "0.1.0" }
-sisa-health-checks-postgres = { path = "crates/postgres", version = "0.1.0" }
-sisa-health-checks-redis = { path = "crates/redis", version = "0.1.0" }
-sisa-health-checks-nats = { path = "crates/nats", version = "0.1.0" }
-sisa-health-checks-grpc = { path = "crates/grpc", version = "0.1.0" }
+sisa-health-checks = { path = "crates/sisa-health-checks", version = "0.0.1" }
+sisa-health-checks-core = { path = "crates/core", version = "0.0.1" }
+sisa-health-checks-http = { path = "crates/http", version = "0.0.1" }
+sisa-health-checks-postgres = { path = "crates/postgres", version = "0.0.1" }
+sisa-health-checks-redis = { path = "crates/redis", version = "0.0.1" }
+sisa-health-checks-nats = { path = "crates/nats", version = "0.0.1" }
+sisa-health-checks-grpc = { path = "crates/grpc", version = "0.0.1" }
 
 # Async building blocks: the poller task, per-check timeouts, and running checks side by side.
 # Tests and the example add `macros` for `#[tokio::test]` and `#[tokio::main]`.
