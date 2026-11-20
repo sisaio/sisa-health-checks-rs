@@ -15,7 +15,7 @@ sisa-health-checks = { workspace = true, features = ["axum", "postgres", "redis"
 
 # The server, its runtime, and Ctrl-C and SIGTERM.
 axum = { workspace = true, features = ["tokio", "http1"] }
-tokio = { workspace = true, features = ["rt-multi-thread", "net", "signal"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "signal"] }
 # The connection the Redis check uses.
 redis = { workspace = true, features = ["connection-manager"] }
 tracing = { workspace = true }

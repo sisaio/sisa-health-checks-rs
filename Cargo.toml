@@ -30,7 +30,8 @@ sisa-health-checks-redis = { path = "crates/redis", version = "0.1.0" }
 sisa-health-checks-nats = { path = "crates/nats", version = "0.1.0" }
 
 # Async building blocks: the poller task, per-check timeouts, and running checks side by side.
-tokio = { version = "1.53.3", features = ["rt", "macros", "time", "sync"] }
+# Tests and the example add `macros` for `#[tokio::test]` and `#[tokio::main]`.
+tokio = { version = "1.53.3", features = ["rt", "time"] }
 futures-util = { version = "0.3.34", default-features = false, features = ["std"] }
 tracing = { version = "0.1.44" }
 

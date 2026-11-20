@@ -35,7 +35,7 @@ sisa-health-checks-redis = { workspace = true, optional = true }
 sisa-health-checks-nats = { workspace = true, optional = true }
 
 [dev-dependencies]
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
 
 [package.metadata.docs.rs]
 all-features = true

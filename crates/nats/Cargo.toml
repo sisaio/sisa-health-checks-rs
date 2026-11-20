@@ -26,4 +26,4 @@ async-nats = { workspace = true }
 
 [dev-dependencies]
 sisa-health-checks-testing = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
