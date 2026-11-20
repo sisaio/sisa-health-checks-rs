@@ -22,10 +22,6 @@
 //! `PING` proves the server answers, not that it accepts writes. For that, write your own check
 //! that sets a key of its own with a short TTL and reads it back.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 use std::{fmt, future::Future};
 
 pub use redis;

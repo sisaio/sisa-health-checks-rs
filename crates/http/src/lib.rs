@@ -70,10 +70,6 @@
 //!
 //! Every answer has `Cache-Control: no-store`, so no proxy serves a stale one.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 use sisa_health_checks_core::{HealthRegistry, Probe};
 
 /// The liveness path.

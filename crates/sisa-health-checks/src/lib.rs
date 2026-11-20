@@ -44,9 +44,6 @@
 //! `-postgres`, `-redis`, `-nats`), whose docs cover the details.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
 
 pub use sisa_health_checks_core::{
     CheckContext, CheckReport, EventLoopCheck, FnCheck, HealthCheck, HealthError, HealthRegistry,

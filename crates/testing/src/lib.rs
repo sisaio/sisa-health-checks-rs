@@ -24,6 +24,7 @@ fn image(variable: &str, default: &str) -> GenericImage {
 }
 
 /// A server of its own for one test, in Docker. It is removed when this value drops.
+#[derive(Debug)]
 pub struct Server {
     container: ContainerAsync<GenericImage>,
     port: u16,

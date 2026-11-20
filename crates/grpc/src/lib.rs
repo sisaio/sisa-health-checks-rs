@@ -38,10 +38,6 @@
 //! `Watch` isn't served: it answers `UNIMPLEMENTED`, which the protocol allows. The kubelet,
 //! Envoy and `grpc_health_probe` only call `Check`.
 
-#![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 use std::sync::Arc;
 
 use connectrpc::{ConnectError, Router};
