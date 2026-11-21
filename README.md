@@ -186,7 +186,9 @@ Kubernetes `grpc:` probe.
 ## Observability
 
 Each run records `sisa.health.status` (1, 0.5 or 0) and `sisa.health.check.duration` per check
-through the OpenTelemetry metrics API, and each change of status is one log line.
+through the OpenTelemetry metrics API, and each change of status is one log line. The application
+installs the SDK that exports them, before it builds the registry; the example service does it
+with one call to [sisa-telemetry](https://crates.io/crates/sisa-telemetry)'s `init`.
 [docs/observability.md](https://github.com/sisaio/sisa-health-checks-rs/blob/main/docs/observability.md)
 lists them and what to alert on.
 
