@@ -7,6 +7,11 @@
 //!     cargo run -p sisa-health-checks-example-axum-service
 //! curl -i 'http://127.0.0.1:9090/readyz?verbose'
 //! ```
+//!
+//! `sisa_telemetry::init` prints the logs as JSON on stdout and pushes the registry's metrics
+//! over OTLP to a Collector at `http://localhost:4317`; the standard `OTEL_*` variables, such as
+//! `OTEL_EXPORTER_OTLP_ENDPOINT`, say otherwise. Without a Collector the service runs the same,
+//! and each failed export is logged.
 
 use std::{env, error::Error, time::Duration};
 
@@ -24,11 +29,15 @@ use sisa_health_checks::{
     redis,
     sqlx::PgPool,
 };
+use sisa_telemetry::{ServiceResource, TelemetrySettings};
 use tokio::{net::TcpListener, signal};
 
 /// How long `/readyz` fails before the server stops, so load balancers and kube-proxy stop
 /// sending traffic first.
 const DRAIN_DELAY: Duration = Duration::from_secs(5);
+
+/// How long the shutdown waits for the last spans to reach the Collector.
+const TELEMETRY_FLUSH: Duration = Duration::from_secs(2);
 
 fn setting(name: &str, default: &str) -> String {
     env::var(name).unwrap_or_else(|_| default.to_string())
@@ -92,6 +101,13 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // First, before the registry is built: its instruments record into the meter provider
+    // installed when they are created.
+    let telemetry = sisa_telemetry::init(
+        &TelemetrySettings::default(),
+        ServiceResource::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
+    )?;
+
     let pool = PgPool::connect_lazy(&setting(
         "DATABASE_URL",
         "postgres://postgres:postgres@127.0.0.1:5432/postgres",
@@ -125,6 +141,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             tokio::time::sleep(DRAIN_DELAY).await;
         })
         .await?;
+
+    // After the server has stopped: send what the providers still hold. A Collector that is
+    // down costs the last metrics, not a failed exit.
+    if let Err(error) = telemetry.shutdown(TELEMETRY_FLUSH) {
+        tracing::warn!(%error, "the last telemetry was not sent");
+    }
 
     Ok(())
 }
