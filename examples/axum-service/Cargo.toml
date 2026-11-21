@@ -19,7 +19,11 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "sig
 # The connection the Redis check uses.
 redis = { workspace = true, features = ["connection-manager"] }
 tracing = { workspace = true }
+# The logs, and the OTLP export of the registry's metrics.
+sisa-telemetry = { workspace = true }
 
 [dev-dependencies]
+# Reads back the metrics a registry records, without a Collector.
+sisa-telemetry = { workspace = true, features = ["testing"] }
 # Sends requests to the router without a server.
 tower = { workspace = true, features = ["util"] }

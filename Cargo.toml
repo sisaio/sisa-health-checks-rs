@@ -52,6 +52,10 @@ tracing = { version = "0.1.44" }
 # the SDK.
 opentelemetry = { version = "0.33.1", default-features = false, features = ["metrics"] }
 opentelemetry_sdk = { version = "0.33.1" }
+# The SDK the example service installs: OTLP traces and metrics, and JSON logs. It is built on the
+# same `opentelemetry` version, so its meter provider is the one the registry records into. No
+# library crate depends on it.
+sisa-telemetry = { version = "0.1.0" }
 
 # Error types: the mechanical `Display` and `Error` implementations.
 thiserror = { version = "2.0.21" }
