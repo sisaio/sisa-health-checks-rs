@@ -47,6 +47,7 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 (set -e; for f in "" http grpc postgres redis nats; do cargo check -p sisa-health-checks --features "$f" --locked; done)
+cargo tree -i opentelemetry --all-features --edges normal --locked > /dev/null
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features --locked
 cargo +1.94 check --workspace --all-targets --all-features --locked
 cargo nextest run --workspace --all-features --locked
@@ -55,6 +56,10 @@ cargo deny check
 cargo semver-checks --workspace --all-features --baseline-rev origin/main   # unless labeled `breaking`
 lychee --offline --include-fragments --hidden --exclude-path '(^|/)(\.git|\.claude|target)/' './**/*.md'
 ```
+
+`cargo tree -i opentelemetry` fails when the build holds two versions of `opentelemetry`. Two
+semver-incompatible versions are two crates with two sets of global providers, so the registry's
+metrics would go to a provider the application never installed.
 
 A weekly workflow also checks the workspace with every direct dependency at its lowest allowed
 version: `cargo +nightly update -Z direct-minimal-versions`, then `cargo check --workspace

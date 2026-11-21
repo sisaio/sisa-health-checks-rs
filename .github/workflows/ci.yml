@@ -1,5 +1,5 @@
 # The commit and branch rules, the Markdown links and the dependency policy; formatting, lints,
-# the docs and the MSRV build; breaking API changes; the tests, which run against PostgreSQL, Redis
+# the docs, the MSRV build and the one `opentelemetry` version; breaking API changes; the tests, which run against PostgreSQL, Redis
 # and NATS; and coverage on main. The tests start their servers in Docker. PRs and pushes to main
 # that change no Rust inputs skip the Rust jobs; `ci` sums them up for the ruleset.
 #
@@ -162,6 +162,12 @@ jobs:
           for features in "" http grpc postgres redis nats; do
             cargo check -p sisa-health-checks --features "$features" --locked
           done
+
+      # Two semver-incompatible versions of `opentelemetry` are two crates with two sets of global
+      # providers, and a crate on the one the application didn't initialize records into nothing.
+      # `cargo tree -i` fails when the name matches more than one version.
+      - name: Check the build holds one opentelemetry version
+        run: cargo tree -i opentelemetry --all-features --edges normal --locked > /dev/null
 
       # docs.rs builds every published crate with every feature; a broken link fails here instead.
       - name: Build the docs
